@@ -1,0 +1,8 @@
+/* this is a block comment 
+it spans multiple lines
+as one would expect */
+n = 10  // this is a line comment
+m = n + 2 /* this is a
+/* nested */ block comment */
+res = n + m
+res == 22

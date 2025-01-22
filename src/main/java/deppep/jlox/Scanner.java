@@ -86,6 +86,8 @@ class Scanner {
 				// this is a comment, and it will go on until end of line
 				while (peek() != '\n' && !isAtEnd()) advance();
 				// we do not add any token, so start will reset after this
+			} else if (match('*')) {
+				commentblock();
 			} else {
 				addToken(TokenType.SLASH);
 			}
@@ -156,9 +158,32 @@ class Scanner {
 		if (type == null) type = TokenType.IDENTIFIER;
 		addToken(type);
 	}
+
+	private void commentblock() {
+		int nested = 1;
+		
+		while (!isAtEnd() && nested > 0) {
+			char c = advance();
+			
+			switch(c) {
+			case '\n':
+				line++;
+				break;
+			case '*':
+				if (match('/')) nested--;
+				break;
+			case '/':
+				if (match('*')) nested++;
+				break;
+			default:
+				break;
+			}
+		}
+	}
 	
 	private boolean match(char expected) {
-		// for matching double-char tokens
+		// for matching double-char tokens.
+		// consumes current character when matching.
 		if (isAtEnd()) return false;
 		if (source.charAt(current) != expected) return false;
 
