@@ -1,3 +1,7 @@
+# `deppep.jlox`
+
+The code implement these additional features:
+* block comments
 
 ## Building and Running
 
