@@ -1,7 +1,10 @@
-# `deppep.jlox`
+# deppep.jlox
 
 The code implement these additional features:
 * block comments
+
+Solution to challenges which would not result in interesting features are given in separate branches:
+* chapter 5.3 @ `rpn`
 
 ## Building and Running
 
