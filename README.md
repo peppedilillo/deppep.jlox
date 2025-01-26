@@ -1,10 +1,13 @@
 # deppep.jlox
 
 The code implement these additional features:
-* block comments
+* block comments (challenge 4.4)
 
 Solution to challenges which would not result in interesting features are given in separate branches:
-* chapter 5.3 @ `rpn`
+* challenge 5.3 @ rpn
+
+The `extras` directory contains:
+* `funvis.hs`, a haskell solution to challenge 5.2
 
 ## Building and Running
 
