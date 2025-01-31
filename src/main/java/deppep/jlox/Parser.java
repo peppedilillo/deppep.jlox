@@ -13,7 +13,6 @@
 package deppep.jlox;
 
 import java.util.List;
-import deppep.jlox.TokenType;
 
 class Parser {
 	// a note on the java syntax for custom excpetions
@@ -33,8 +32,8 @@ class Parser {
 		} catch (ParseError error) {
 			// note we are not throwing here. a parser promises it
 			// will not crash or hang on a malformed syntax but not
-			// that it will return an usable syntax tree. anyway, when
-			// this happens, Lox.hadError will be set and we can leave
+			// that it will return a usable syntax tree. anyway, when
+			// this happens, Lox.hadError will be set, and we can leave
 			// with peace of mind.
 			return null;
 		}
@@ -115,7 +114,7 @@ class Parser {
 		// rules like the Binarys before? the book says recursion does not
 		// play good on the left. my explanation on this is that we can tail
 		// recur on the right, but not on the left, hence left recursion may
-		// cause stack overflows. however keep in mind this is my idea, i am
+		// cause stack overflows. however keep in mind this is my idea, I am
 		// not sure about the actual reason for this.
 		return primary();
 	}
@@ -127,7 +126,7 @@ class Parser {
 		if (match(TokenType.NIL)) return new Expr.Literal(null);
 		if (match(TokenType.NUMBER, TokenType.STRING)) return new Expr.Literal(previous().literal);
 		if (match(TokenType.LEFT_PAREN)) {
-			Expr expr = expression();  // here we go again..
+			Expr expr = expression();  // here we go again.
 			// if we don't get a ')' we got an error
 			consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
 			return new Expr.Grouping(expr);
@@ -196,7 +195,7 @@ class Parser {
 		// when we catch  a ParseError we enter this (PANIC MODE) and just skip
 		// up to the next statement, where we start catching errors again.
 		// this will catch new statement starts, so that we can skip catching
-		// too much errors due to a faulty expression. 
+		// too many errors due to a faulty expression.
 		advance();
 
 		while (!isAtEnd()) {
@@ -214,8 +213,7 @@ class Parser {
 			case TokenType.PRINT:
 			case TokenType.RETURN:
 				return;
-			default:
-				;
+				default:
 			}
 
 			advance();
