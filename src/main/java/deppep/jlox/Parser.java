@@ -16,11 +16,28 @@ import java.util.List;
 import deppep.jlox.TokenType;
 
 class Parser {
+	// a note on the java syntax for custom excpetions
+	// the braces repreent an empty class body
+	private static class ParseError extends RuntimeException {}
+	
 	private final List<Token> tokens;
 	private int current = 0;
 
 	Parser(List<Token> tokens) {
 		this.tokens = tokens;
+	}
+
+	Expr parse() {
+		try {
+			return expression();
+		} catch (ParseError error) {
+			// note we are not throwing here. a parser promises it
+			// will not crash or hang on a malformed syntax but not
+			// that it will return an usable syntax tree. anyway, when
+			// this happens, Lox.hadError will be set and we can leave
+			// with peace of mind.
+			return null;
+		}
 	}
 
 	private Expr expression() {
@@ -115,6 +132,16 @@ class Parser {
 			consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
 			return new Expr.Grouping(expr);
 		}
+
+		// if we get here, we are starting with a token which could not
+		// possibly start an expression (think like `else`).
+		throw error(peek(), "Expect expression");
+	}
+
+	private Token consume(TokenType type, String message) {
+		if (check(type)) return advance();
+
+		throw error(peek(), message);
 	}
 
 	private boolean match(TokenType... types) {
@@ -151,6 +178,48 @@ class Parser {
 
 	private Token previous() {
 		return tokens.get(current - 1);
+	}
+
+	private ParseError error(Token token, String message) {
+		Lox.error(token, message);
+		// note we are returning the error, not throwing it.
+		// this will allow us to continue parsing when it is not critic
+		// to resynchronize. think for example of a function call with
+		// more argument than the function's parameters. we should of course
+		// report the error and not evaluate, but we can keep on parsing, eventually
+		// catching more errors without any particular concerns. in other cases
+		// we will have to entere panic mode and stop parsing to resynchronize.
+		return new ParseError();
+	}
+
+	private void synchronize() {
+		// when we catch  a ParseError we enter this (PANIC MODE) and just skip
+		// up to the next statement, where we start catching errors again.
+		// this will catch new statement starts, so that we can skip catching
+		// too much errors due to a faulty expression. 
+		advance();
+
+		while (!isAtEnd()) {
+			// if we just passed a semicolon we are starting a new statement
+			if (previous().type == TokenType.SEMICOLON) return;
+
+			// if we are at one of these, we are probably at a new statement too
+			switch (peek().type) {
+			case TokenType.CLASS:
+			case TokenType.FUN:
+			case TokenType.VAR:
+			case TokenType.FOR:
+			case TokenType.IF:
+			case TokenType.WHILE:
+			case TokenType.PRINT:
+			case TokenType.RETURN:
+				return;
+			default:
+				;
+			}
+
+			advance();
+		}
 	}
 	
 }
