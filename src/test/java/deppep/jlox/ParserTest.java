@@ -84,4 +84,15 @@ public class ParserTest {
 
         assertEquals("strings are not equal", expected, actual);
     }
+
+    @Test
+    public void CommaOperatorTest() {
+        String input = "1.0, 1.0 + 2.0";
+        String expected = "(, 1.0 (+ 1.0 2.0))";
+        List<Token> tokens = new Scanner(input).scanTokens();
+        Expr expr = new Parser(tokens).parse();
+        String actual = new AstPrinter().print(expr);
+
+        assertEquals("strings are not equal", expected, actual);
+    }
 }

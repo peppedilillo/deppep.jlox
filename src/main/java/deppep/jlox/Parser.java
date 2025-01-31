@@ -1,6 +1,7 @@
 /**
  * A recursive descent, abstact syntax tree parser implementing the grammar:
- *     expression    -> equality;
+ *     expression    -> comma;
+ *     comma         -> equality ("," equality)+;
  *     equality      -> comparison (("!=" | "==") comparison)*;
  *     comparison    -> term ((">" | ">=" | "<" | "<=") term)*;
  *     term          -> factor (("-" | "+") factor)*;
@@ -40,7 +41,19 @@ class Parser {
 	}
 
 	private Expr expression() {
-		return equality();
+		return comma();
+	}
+
+	// challenge 6.3
+	private Expr comma() {
+		Expr expr = equality();
+		while (match(TokenType.COMMA)) {
+			Token token = previous();
+			Expr right = equality();
+			expr = new Expr.Binary(expr, token, right);
+		}
+
+		return expr;
 	}
 
 	private Expr equality() {

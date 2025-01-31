@@ -159,6 +159,7 @@ class Scanner {
 		addToken(type);
 	}
 
+	// challenge 4.4
 	private void commentblock() {
 		int nested = 1;
 		
