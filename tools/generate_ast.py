@@ -12,6 +12,7 @@ from datetime import datetime
 INDENT = " " * 4
 
 PRODUCTIONS = (
+    ("Ternary", (("Expr", "left"), ("Token", "first"), ("Expr", "middle"), ("Token", "second"), ("Expr", "right"))),
     ("Binary", (("Expr", "left"), ("Token", "operator"), ("Expr", "right"))),
     ("Grouping", (("Expr", "expression"),)),
     ("Literal", (("Object", "value"),)),

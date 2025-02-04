@@ -95,4 +95,37 @@ public class ParserTest {
 
         assertEquals("strings are not equal", expected, actual);
     }
+
+    @Test
+    public void TernaryTest1() {
+        String input = "1.0 ? 2.0 : 3.0";
+        String expected = "(?: 1.0 2.0 3.0)";
+        List<Token> tokens = new Scanner(input).scanTokens();
+        Expr expr = new Parser(tokens).parse();
+        String actual = new AstPrinter().print(expr);
+
+        assertEquals("strings are not equal", expected, actual);
+    }
+
+    @Test
+    public void TernaryTest2() {
+        String input = "1.0 ? 2.0 ? 3.0 : 4.0 : 5.0";
+        String expected = "(?: 1.0 (?: 2.0 3.0 4.0) 5.0)";
+        List<Token> tokens = new Scanner(input).scanTokens();
+        Expr expr = new Parser(tokens).parse();
+        String actual = new AstPrinter().print(expr);
+
+        assertEquals("strings are not equal", expected, actual);
+    }
+
+    @Test
+    public void TernaryTest3() {
+        String input = "1.0 ? 2.0 : 3.0 ? 4.0 : 5.0";
+        String expected = "(?: 1.0 2.0 (?: 3.0 4.0 5.0))";
+        List<Token> tokens = new Scanner(input).scanTokens();
+        Expr expr = new Parser(tokens).parse();
+        String actual = new AstPrinter().print(expr);
+
+        assertEquals("strings are not equal", expected, actual);
+    }
 }

@@ -1,15 +1,17 @@
 /**
  * A recursive descent, abstact syntax tree parser implementing the grammar:
  *     expression    -> comma;
- *     comma         -> equality ("," equality)+;
+ *     comma         -> ternary ("," ternary)+;
+ *     ternary       -> equality "?" ternary ":" ternary:
+ *                    | equality
  *     equality      -> comparison (("!=" | "==") comparison)*;
  *     comparison    -> term ((">" | ">=" | "<" | "<=") term)*;
  *     term          -> factor (("-" | "+") factor)*;
  *     factor        -> unary (("/" | "*") unary)*;
  *     unary         -> ("!" | "-") unary
- *                   |  primary;
+ *                    | primary;
  *     primary       -> NUMBER | STRING | "true" | "false" | "nil"
- *                   |  "(" expression ")";
+ *                    | "(" expression ")";
 */
 package deppep.jlox;
 
@@ -46,14 +48,31 @@ class Parser {
 
 	// challenge 6.3
 	private Expr comma() {
-		Expr expr = equality();
+		Expr expr = ternary();
 		while (match(TokenType.COMMA)) {
 			Token token = previous();
-			Expr right = equality();
+			Expr right = ternary();
 			expr = new Expr.Binary(expr, token, right);
 		}
 
 		return expr;
+	}
+
+	// challenge 6.2
+	private Expr ternary() {
+		Expr left = equality();
+		if (match(TokenType.QUESTION)) {
+			Token first = previous();
+			Expr middle = ternary();
+			if (match(TokenType.COLON)) {
+				Token second = previous();
+				Expr right = ternary();
+				return new Expr.Ternary(left, first, middle, second, right);
+			} else {
+				throw error(peek(), "Expect ':' after '?' for ternary conditional expression.");
+			}
+		}
+		return left;
 	}
 
 	private Expr equality() {
@@ -157,7 +176,7 @@ class Parser {
 	}
 
 	private boolean match(TokenType... types) {
-		// as with the lexer, will consume the token
+		// as with the lexer, will consume the token _if match_
 		for (TokenType type : types) {
 			if (check(type)) {
 				advance();
