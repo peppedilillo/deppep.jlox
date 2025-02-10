@@ -6,6 +6,7 @@
  *                    | equality
  *     equality      -> comparison (("!=" | "==") comparison)*;
  *     comparison    -> term ((">" | ">=" | "<" | "<=") term)*;
+ *   [ errTerm       -> "+" factor;  // error production ]
  *     term          -> factor (("-" | "+") factor)*;
  *     factor        -> unary (("/" | "*") unary)*;
  *     unary         -> ("!" | "-") unary
@@ -94,18 +95,27 @@ class Parser {
 	private Expr comparison() {
 		// note the code being practically equal to that of `equality`
 		// this is because the production rule _is_ formally equal to that!
-		Expr expr = term();
+		Expr expr = errTerm();
 
 		while (match(TokenType.GREATER,
 					 TokenType.GREATER_EQUAL,
 					 TokenType.LESS,
 					 TokenType.LESS_EQUAL)) {
 			Token operator = previous();
-			Expr right = term();
+			Expr right = errTerm();
 			expr = new Expr.Binary(expr, operator, right);
 		}
 
 		return expr;
+	}
+
+	// challenge 6.3
+	private Expr errTerm() {
+		if (match(TokenType.PLUS)) {
+			Expr _ = term();
+			throw error(previous(), "Can not start expression with '+' operator");
+		}
+		return term();
 	}
 
 	private Expr term() {
