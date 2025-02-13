@@ -110,6 +110,9 @@ class Parser {
 	}
 
 	// challenge 6.3
+	// why here? consider `+ a * b`. `*` should bind tighter, the correct precedence
+	// here should be + (a * b). on the other hand, consider `+ a > 2`. this should
+	// be interpreted as (+ a) > 2.
 	private Expr errTerm() {
 		if (match(TokenType.PLUS)) {
 			Expr _ = term();
