@@ -44,7 +44,7 @@ java -cp target/classes deppep.jlox.Lox script.lox
 mvn test
 ```
 
-## Generate summary for AI
+## Code dump
 ```bash
 repomix --ignore=".idea,target" .
 ```
