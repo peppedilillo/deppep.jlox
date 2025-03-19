@@ -5,6 +5,7 @@ The code implement these additional features:
 * comma operator (challenge 6.1)
 * ternary operator (challenge 6.2)
 * '+' at start expression error production (challenge 6.3)
+* division by zero runtime error (challenge 7.2)
 
 These challenges were solved but not implemented and left as comments:
 * sum of strings and arbitrary object (challenge 7.2)
