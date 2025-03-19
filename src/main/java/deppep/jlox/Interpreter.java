@@ -1,17 +1,29 @@
 package deppep.jlox;
 
+import java.util.List;
+
 
 // Lox objects are stored in Java's objects. Hence the interpreter return these.
-public class Interpreter implements Expr.Visitor<Object> {
-	void interpret(Expr expression) {
+// kinda cool that the difference between expression and statements is higlighted
+// well in this declaration: expression returns values (Java's Object in our
+// implementation); statements do not return values (Void) but have side-effects.
+public class Interpreter implements Expr.Visitor<Object>,
+						 // a technique note on the next line. For some obscure reason
+						 // Java do not let you return `void` as generic type. You have
+						 // to return Void, which is a "boxed void" implementation alike
+						 // `Int` is for `int`.
+						 Stmt.Visitor<Void> {
+	void interpret(List<Stmt> statements) {
 		try {
-			Object value = evaluate(expression);
-			System.out.println(stringify(value));
+			for (Stmt statement: statements) {
+				execute(statement);
+			}
 		} catch (RuntimeError error) {
 			Lox.runtimeError(error);
 		}
 	}
-	
+
+	// expr interface
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
         return expr.value;
@@ -160,5 +172,26 @@ public class Interpreter implements Expr.Visitor<Object> {
 
 	private Object evaluate(Expr expr){
 		return expr.accept(this);
+	}
+
+
+	// Stmt interface
+	@Override
+	public Void visitExpressionStmt(Stmt.Expression stmt) {
+		evaluate(stmt.expression);
+		// note we return null. This is requrired by `Void`.
+		// see note at top.
+		return null;
+	}
+
+	@Override
+	public Void visitPrintStmt(Stmt.Print stmt) {
+		Object value = evaluate(stmt.expression);
+		System.out.println(stringify(value));
+		return null;
+	}
+
+	private void execute(Stmt stmt) {
+		stmt.accept(this);
 	}
 }

@@ -17,6 +17,8 @@
 package deppep.jlox;
 
 import java.util.List;
+import java.util.ArrayList;
+
 
 class Parser {
 	// a note on the java syntax for custom excpetions
@@ -30,17 +32,39 @@ class Parser {
 		this.tokens = tokens;
 	}
 
-	Expr parse() {
-		try {
-			return expression();
-		} catch (ParseError error) {
-			// note we are not throwing here. a parser promises it
-			// will not crash or hang on a malformed syntax but not
-			// that it will return a usable syntax tree. anyway, when
-			// this happens, Lox.hadError will be set, and we can leave
-			// with peace of mind.
-			return null;
+	List<Stmt> parse() {
+		List<Stmt> statements = new ArrayList<>();
+		while (!isAtEnd()) {
+			statements.add(statement());
 		}
+
+		// WE MOMENTARILY REMOVED PARSER ERROR CATCHING
+		// WE WILL COME BACK TO THIS.
+		// note we are not throwing here. a parser promises it
+		// will not crash or hang on a malformed syntax but not
+		// that it will return a usable syntax tree. anyway, when
+		// this happens, Lox.hadError will be set, and we can leave
+		// with peace of mind.
+
+		return statements;
+	}
+
+	private Stmt statement(){
+		if (match(TokenType.PRINT)) return printStatement();
+
+		return expressionStatement();
+	}
+
+	private Stmt printStatement() {
+		Expr value = expression();
+		consume(TokenType.SEMICOLON, "Expect ';' after value.");
+		return new Stmt.Print(value);
+	}
+
+	private Stmt expressionStatement() {
+		Expr expr = expression();
+		consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+		return new Stmt.Expression(expr);
 	}
 
 	private Expr expression() {
