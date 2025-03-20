@@ -2,7 +2,8 @@
  * Implements the syntax grammar:
  *     Expression -> Expr expression
  *     Print -> Expr expression
- * automatically generated with `generate_ast.py` on 19/03/25 22:11.
+ *     Var -> Token name, Expr initializer
+ * automatically generated with `generate_ast.py` on 20/03/25 23:00.
 */
 package deppep.jlox;
 
@@ -11,6 +12,7 @@ abstract class Stmt {
     interface Visitor<R> {
         R visitExpressionStmt(Expression expr);
         R visitPrintStmt(Print expr);
+        R visitVarStmt(Var expr);
     }
 
     static class Expression extends Stmt {
@@ -37,6 +39,21 @@ abstract class Stmt {
         }
 
         final Expr expression;
+    }
+
+    static class Var extends Stmt {
+        Var(Token name, Expr initializer) {
+            this.name=name;
+            this.initializer=initializer;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVarStmt(this);
+        }
+
+        final Token name;
+        final Expr initializer;
     }
 
     abstract <R> R accept(Visitor<R> visitor);

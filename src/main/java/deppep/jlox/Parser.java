@@ -1,18 +1,25 @@
 /**
  * A recursive descent, abstact syntax tree parser implementing the grammar:
- *     expression    -> comma;
- *     comma         -> ternary ("," ternary)+;
- *     ternary       -> equality "?" ternary ":" ternary:
- *                    | equality
- *     equality      -> comparison (("!=" | "==") comparison)*;
- *     comparison    -> term ((">" | ">=" | "<" | "<=") term)*;
- *   [ errTerm       -> "+" factor;  // error production ]
- *     term          -> factor (("-" | "+") factor)*;
- *     factor        -> unary (("/" | "*") unary)*;
- *     unary         -> ("!" | "-") unary
- *                    | primary;
- *     primary       -> NUMBER | STRING | "true" | "false" | "nil"
- *                    | "(" expression ")";
+ *     program          -> declariation* EOF;
+ *     declaration      -> varDecl
+ *                       | statement;
+ *     statement        -> exprStatement
+ *                       | printStatement;
+ *     exprStatement    -> expression ";";
+ *     printStatement   -> "print" expression ";";
+ *     expression       -> comma;
+ *     comma            -> ternary ("," ternary)+;
+ *     ternary          -> equality "?" ternary ":" ternary:
+ *                       | equality
+ *     equality         -> comparison (("!=" | "==") comparison)*;
+ *     comparison       -> term ((">" | ">=" | "<" | "<=") term)*;
+ *   [ errTerm          -> "+" factor;  // error production ]
+ *     term             -> factor (("-" | "+") factor)*;
+ *     factor           -> unary (("/" | "*") unary)*;
+ *     unary            -> ("!" | "-") unary
+ *                       | primary;
+ *     primary          -> NUMBER | STRING | "true" | "false" | "nil"
+ *                       | "(" expression ")";
 */
 package deppep.jlox;
 
@@ -35,7 +42,7 @@ class Parser {
 	List<Stmt> parse() {
 		List<Stmt> statements = new ArrayList<>();
 		while (!isAtEnd()) {
-			statements.add(statement());
+			statements.add(declaration());
 		}
 
 		// WE MOMENTARILY REMOVED PARSER ERROR CATCHING
@@ -49,6 +56,32 @@ class Parser {
 		return statements;
 	}
 
+	private Stmt declaration() {
+		try {
+			if (match(TokenType.VAR)) return varDeclaration();
+			return statement();
+		} catch (ParseError error) {
+			// this is the right place for synchronize, because it's at the
+			// lowest priority. This means that whenever we encounter an error
+			// we will leave and get back to the start trying to parse the
+			// remaining code.
+			synchronize();
+			return null;
+		}
+	}
+
+	private Stmt varDeclaration() {
+		Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+		Expr initializer = null;
+		if (match(TokenType.EQUAL)) {
+			initializer = expression();
+		}
+
+		consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+		return new Stmt.Var(name, initializer);
+	}
+	
 	private Stmt statement(){
 		if (match(TokenType.PRINT)) return printStatement();
 
@@ -194,6 +227,7 @@ class Parser {
 		if (match(TokenType.TRUE)) return new Expr.Literal(true);
 		if (match(TokenType.NIL)) return new Expr.Literal(null);
 		if (match(TokenType.NUMBER, TokenType.STRING)) return new Expr.Literal(previous().literal);
+		if (match(TokenType.IDENTIFIER)) return new Expr.Variable(previous());
 		if (match(TokenType.LEFT_PAREN)) {
 			Expr expr = expression();  // here we go again.
 			// if we don't get a ')' we got an error

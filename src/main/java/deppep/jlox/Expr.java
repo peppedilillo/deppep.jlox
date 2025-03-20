@@ -1,11 +1,12 @@
 /**
- * Implements the  syntax grammar:
+ * Implements the syntax grammar:
  *     Ternary -> Expr left, Token first, Expr middle, Token second, Expr right
  *     Binary -> Expr left, Token operator, Expr right
+ *     Unary -> Token operator, Expr right
  *     Grouping -> Expr expression
  *     Literal -> Object value
- *     Unary -> Token operator, Expr right
- * automatically generated with `generate_ast.py` on 04/02/25 22:27.
+ *     Variable -> Token name
+ * automatically generated with `generate_ast.py` on 20/03/25 22:59.
 */
 package deppep.jlox;
 
@@ -14,9 +15,10 @@ abstract class Expr {
     interface Visitor<R> {
         R visitTernaryExpr(Ternary expr);
         R visitBinaryExpr(Binary expr);
+        R visitUnaryExpr(Unary expr);
         R visitGroupingExpr(Grouping expr);
         R visitLiteralExpr(Literal expr);
-        R visitUnaryExpr(Unary expr);
+        R visitVariableExpr(Variable expr);
     }
 
     static class Ternary extends Expr {
@@ -57,6 +59,21 @@ abstract class Expr {
         final Expr right;
     }
 
+    static class Unary extends Expr {
+        Unary(Token operator, Expr right) {
+            this.operator=operator;
+            this.right=right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitUnaryExpr(this);
+        }
+
+        final Token operator;
+        final Expr right;
+    }
+
     static class Grouping extends Expr {
         Grouping(Expr expression) {
             this.expression=expression;
@@ -83,19 +100,17 @@ abstract class Expr {
         final Object value;
     }
 
-    static class Unary extends Expr {
-        Unary(Token operator, Expr right) {
-            this.operator=operator;
-            this.right=right;
+    static class Variable extends Expr {
+        Variable(Token name) {
+            this.name=name;
         }
 
         @Override
         <R> R accept(Visitor<R> visitor) {
-            return visitor.visitUnaryExpr(this);
+            return visitor.visitVariableExpr(this);
         }
 
-        final Token operator;
-        final Expr right;
+        final Token name;
     }
 
     abstract <R> R accept(Visitor<R> visitor);
