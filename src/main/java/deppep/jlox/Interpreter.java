@@ -110,8 +110,10 @@ public class Interpreter implements Expr.Visitor<Object>,
 			return !isEqual(left, right);
 		case TokenType.EQUAL_EQUAL:
 			return isEqual(left, right);
+		case TokenType.COMMA:
+			return right;
 		}
-
+		
 		// unreachable
 		return null;
 	}
