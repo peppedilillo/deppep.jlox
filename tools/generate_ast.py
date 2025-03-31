@@ -87,20 +87,17 @@ def writer(line: str, f: IO):
     
 if __name__ == "__main__":
     import sys
+
     USAGE = (
             f"Usage: python {Path(__file__).name} expr|stmt [output]\n"
             f"Prints java expression or statement class, and optionally saves it to output."
     )
-    if not 1 < len(sys.argv) <= 3:
+
+    if len(sys.argv) != 2 or sys.argv[1] not in ["expr", "stmt"]:
         print(USAGE)
         exit()
-    elif len(sys.argv) == 3:
-        # to file
-        f = open(Path(sys.argv[2]), "w")
-    elif len(sys.argv) == 2:
-        # to stdout
-        f = sys.stdout
-    
+
+    f = sys.stdout
     key = sys.argv[1].capitalize()
     write_doc(key, lambda s: writer(s, f))
     write_package_name("deppep.jlox", lambda s: writer(s, f))
