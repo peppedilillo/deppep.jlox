@@ -8,8 +8,10 @@
  *     exprStatement    -> expression ";";
  *     printStatement   -> "print" expression ";";
  *     expression       -> comma;
- *     comma            -> ternary ("," ternary)+;
- *     ternary          -> equality "?" ternary ":" ternary:
+ *     comma            -> assignment ("," assignment)+;
+ *     assignment       -> IDENTIFIER "=" assignment;
+ *                       | ternary
+ *     ternary          -> equality "?" ternary ":" ternary
  *                       | equality
  *     equality         -> comparison (("!=" | "==") comparison)*;
  *     comparison       -> term ((">" | ">=" | "<" | "<=") term)*;
@@ -106,19 +108,39 @@ class Parser {
 
 	// challenge 6.3
 	private Expr comma() {
-		Expr expr = ternary();
+		Expr expr = assignment();
 		while (match(TokenType.COMMA)) {
 			Token token = previous();
-			Expr right = ternary();
+			Expr right = assignment();
 			expr = new Expr.Binary(expr, token, right);
 		}
 
 		return expr;
 	}
 
+	private Expr assignment() {
+		// this works because we can parse l-value as if they were expressions
+		Expr expr = ternary();
+
+		if (match(TokenType.EQUAL)) {
+			Token equals = previous();
+			Expr right = assignment();
+			// right associative: we don't loop but recur
+			// here's the trick, check if the left expression results in a valid l-value.
+			if (expr instanceof Expr.Variable) {
+				Token name = ((Expr.Variable) expr).name;
+				return new Expr.Assign(name, right);
+			}
+			// only report. no need to synchronize.
+			error(equals, "Invalid assignment target.");
+		}
+		return expr;
+	}
+
 	// challenge 6.2
 	private Expr ternary() {
 		Expr left = equality();
+
 		if (match(TokenType.QUESTION)) {
 			Token first = previous();
 			Expr middle = ternary();
@@ -135,6 +157,7 @@ class Parser {
 
 	private Expr equality() {
 		Expr expr = comparison();
+
 		while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
 			Token operator = previous();
 			Expr right = comparison();

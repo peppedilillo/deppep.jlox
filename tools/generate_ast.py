@@ -13,8 +13,9 @@ INDENT = " " * 4
 
 PRODUCTIONS = {
     "Expr": (
-        ("Ternary", (("Expr", "left"), ("Token", "first"), ("Expr", "middle"), ("Token", "second"), ("Expr", "right"))),
-        ("Binary", (("Expr", "left"), ("Token", "operator"), ("Expr", "right"))),
+        ("Assign", (("Token", "name"), ("Expr", "value"),)),
+        ("Ternary", (("Expr", "left"), ("Token", "first"), ("Expr", "middle"), ("Token", "second"), ("Expr", "right"),)),
+        ("Binary", (("Expr", "left"), ("Token", "operator"), ("Expr", "right"),)),
         ("Unary", (("Token", "operator"), ("Expr", "right"),)),
         ("Grouping", (("Expr", "expression"),)),
         ("Literal", (("Object", "value"),)),

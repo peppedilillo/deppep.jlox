@@ -113,7 +113,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 		case TokenType.COMMA:
 			return right;
 		}
-		
+
 		// unreachable
 		return null;
 	}
@@ -210,6 +210,13 @@ public class Interpreter implements Expr.Visitor<Object>,
 		// if no initializer, a variable is set to null
 		environment.define(stmt.name.lexeme, value);
 		return null;
+	}
+
+	@Override
+	public Object visitAssignExpr(Expr.Assign expr) {
+		Object value = evaluate(expr.value);
+		environment.assign(expr.name, value);
+		return value;
 	}
 
 	private void execute(Stmt stmt) {

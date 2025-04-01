@@ -7,6 +7,11 @@ class AstPrinter implements Expr.Visitor<String> {
 		return expr.accept(this);
 	}
 
+	@Override
+	public String visitAssignExpr(Expr.Assign expr) {
+		return parenthesize(expr.name + "= ", expr.value);
+	}
+
 	// challenge 6.2
 	@Override
 	public String visitTernaryExpr(Expr.Ternary expr) {
