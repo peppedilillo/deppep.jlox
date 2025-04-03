@@ -5,7 +5,18 @@ import java.util.Map;
 
 
 class Environment {
+	final Environment enclosing;
 	private final Map<String, Object> values = new HashMap<>();
+
+	// global scope
+	Environment() {
+		enclosing = null;
+	}
+
+	// local scopes
+	Environment(Environment enclosing) {
+		this.enclosing = enclosing;
+	}
 
 	void define(String name, Object value) {
 		// note we don't check if `name` is in environment already.
@@ -23,10 +34,11 @@ class Environment {
 	}
 
 	Object get(Token name) {
-		if (values.containsKey(name.lexeme)) {
+		if (values.containsKey(name.lexeme))
 			return values.get(name.lexeme);
-		}
 
+		if (enclosing != null)
+			return enclosing.get(name);
 		// here we have some freedom. why a RuntimeError? after all
 		// it could be detected statically, or we could even go without
 		// errors returning null. the reason for having a RuntimeError here
@@ -39,6 +51,11 @@ class Environment {
 	void assign(Token name, Object value) {
 		if (values.containsKey(name.lexeme)) {
 			values.put(name.lexeme, value);
+			return;
+		}
+
+		if (enclosing != null) {
+			enclosing.assign(name, value);
 			return;
 		}
 

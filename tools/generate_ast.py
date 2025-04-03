@@ -22,6 +22,7 @@ PRODUCTIONS = {
         ("Variable", (("Token", "name"),)),
     ),
     "Stmt": (
+        ("Block", (("List<Stmt>", "statements"),)),
         ("Expression", (("Expr", "expression"),)),
         ("Print", (("Expr", "expression"),)),
         ("Var", (("Token", "name"), ("Expr", "initializer"),)),
@@ -40,9 +41,14 @@ def write_doc(key: str, write: Callable=print):
     write(f" * automatically generated with `{Path(__file__).name}` on {datetime.now().strftime('%d/%m/%y %H:%M')}.")
     write("*/")
 
-def write_package_name(pname: str, write: Callable=print):
+def write_package_name(pname: str, key: str, write: Callable=print):
     write(f"package {pname};")
     write("")
+
+def write_imports(key: str, write: Callable=print):
+    if key == "Stmt":
+        write("import java.util.List;")
+        write("")
     write("")
     
 def write_productions(key: str, write: Callable=print):
@@ -102,4 +108,5 @@ if __name__ == "__main__":
     key = sys.argv[1].capitalize()
     write_doc(key, lambda s: writer(s, f))
     write_package_name("deppep.jlox", lambda s: writer(s, f))
+    write_imports(key, lambda s: writer(s, f))
     write_productions(key, lambda s: writer(s, f))
