@@ -28,7 +28,7 @@ public class Lox {
 	// runs interpreter over a source file wrapper
 	private static void runFile(String path) throws IOException {
 		byte[] bytes = Files.readAllBytes(Paths.get(path));
-		run(new String(bytes, Charset.defaultCharset()));
+		run(new String(bytes, Charset.defaultCharset()), false);
 		if (hadError) System.exit(65);
 		if (hadRuntimeError) System.exit(70);
 	}
@@ -42,19 +42,28 @@ public class Lox {
 			System.out.print("> ");
 			String line = reader.readLine();
 			if (line == null) break;
-			run(line);
+			run(line, true);
 			hadError = false;
 		}
 	}
 
 	// run core function
-	private static void run(String source) {
+	private static void run(String source, boolean repl) {
 		Scanner scanner = new Scanner(source);
 		List<Token> tokens = scanner.scanTokens();
 
 		Parser parser = new Parser(tokens);
 		List<Stmt> statements = parser.parse();
 
+		// challenge 8.1
+		// repl will print to stdout expression statements
+		if (repl) {
+			for (int i = 0; i < statements.size(); i++) {
+				if (statements.get(i) instanceof Stmt.Expression) {
+					statements.set(i, new Stmt.Print(((Stmt.Expression) statements.get(i)).expression));
+				}
+			}
+		}
 		// stop if there was a syntax error
 		if (hadError) return;
 		interpreter.interpret(statements);
