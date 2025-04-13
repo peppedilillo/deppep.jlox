@@ -1,10 +1,11 @@
 /**
  * Implements the syntax grammar:
- *     Block -> List<Stmt> statements
- *     Expression -> Expr expression
- *     Print -> Expr expression
- *     Var -> Token name, Expr initializer
- * automatically generated with `generate_ast.py` on 03/04/25 23:06.
+ *     Block -> List<Stmt> statements;
+ *     Expression -> Expr expression;
+ *     If -> Expr condition, Stmt thenBranch, Stmt elseBranch;
+ *     Print -> Expr expression;
+ *     Var -> Token name, Expr initializer;
+ * automatically generated with `generate_ast.py` on 13/04/25 19:42.
 */
 package deppep.jlox;
 
@@ -15,6 +16,7 @@ abstract class Stmt {
     interface Visitor<R> {
         R visitBlockStmt(Block expr);
         R visitExpressionStmt(Expression expr);
+        R visitIfStmt(If expr);
         R visitPrintStmt(Print expr);
         R visitVarStmt(Var expr);
     }
@@ -43,6 +45,23 @@ abstract class Stmt {
         }
 
         final Expr expression;
+    }
+
+    static class If extends Stmt {
+        If(Expr condition, Stmt thenBranch, Stmt elseBranch) {
+            this.condition=condition;
+            this.thenBranch=thenBranch;
+            this.elseBranch=elseBranch;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIfStmt(this);
+        }
+
+        final Expr condition;
+        final Stmt thenBranch;
+        final Stmt elseBranch;
     }
 
     static class Print extends Stmt {

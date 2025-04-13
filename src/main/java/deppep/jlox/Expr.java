@@ -1,13 +1,14 @@
 /**
  * Implements the syntax grammar:
- *     Assign -> Token name, Expr value
- *     Ternary -> Expr left, Token first, Expr middle, Token second, Expr right
- *     Binary -> Expr left, Token operator, Expr right
- *     Unary -> Token operator, Expr right
- *     Grouping -> Expr expression
- *     Literal -> Object value
- *     Variable -> Token name
- * automatically generated with `generate_ast.py` on 01/04/25 22:31.
+ *     Assign -> Token name, Expr value;
+ *     Ternary -> Expr left, Token first, Expr middle, Token second, Expr right;
+ *     Binary -> Expr left, Token operator, Expr right;
+ *     Unary -> Token operator, Expr right;
+ *     Grouping -> Expr expression;
+ *     Literal -> Object value;
+ *     Logical -> Expr left, Token operator, Expr right;
+ *     Variable -> Token name;
+ * automatically generated with `generate_ast.py` on 13/04/25 20:09.
 */
 package deppep.jlox;
 
@@ -20,6 +21,7 @@ abstract class Expr {
         R visitUnaryExpr(Unary expr);
         R visitGroupingExpr(Grouping expr);
         R visitLiteralExpr(Literal expr);
+        R visitLogicalExpr(Logical expr);
         R visitVariableExpr(Variable expr);
     }
 
@@ -115,6 +117,23 @@ abstract class Expr {
         }
 
         final Object value;
+    }
+
+    static class Logical extends Expr {
+        Logical(Expr left, Token operator, Expr right) {
+            this.left=left;
+            this.operator=operator;
+            this.right=right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLogicalExpr(this);
+        }
+
+        final Expr left;
+        final Token operator;
+        final Expr right;
     }
 
     static class Variable extends Expr {

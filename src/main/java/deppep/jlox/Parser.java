@@ -4,17 +4,21 @@
  *     declaration      -> varDecl
  *                       | statement;
  *     statement        -> exprStatement
- *                       | printStatement;
+ *                       | ifStatement
+ *                       | printStatement
  *                       | block;
- *     block            -> "{" declaration* "}";
  *     exprStatement    -> expression ";";
+ *     ifStatement      -> "if" "(" expression ")" statement ("else" statement)?;
  *     printStatement   -> "print" expression ";";
+ *     block            -> "{" declaration* "}";
  *     expression       -> comma;
  *     comma            -> assignment ("," assignment)+;
- *     assignment       -> IDENTIFIER "=" assignment;
- *                       | ternary
- *     ternary          -> equality "?" ternary ":" ternary
- *                       | equality
+ *     assignment       -> IDENTIFIER "=" assignment
+ *                       | ternary;
+ *     ternary          -> logic_or "?" ternary ":" ternary
+ *                       | logic_or;
+ *     logic_or         -> logic_and ( "or" logic_and )*;
+ *     logic_and        -> equality ( "and" equality )*;
  *     equality         -> comparison (("!=" | "==") comparison)*;
  *     comparison       -> term ((">" | ">=" | "<" | "<=") term)*;
  *   [ errTerm          -> "+" factor;  // error production ]
@@ -87,10 +91,31 @@ class Parser {
 	}
 	
 	private Stmt statement(){
+		if (match(TokenType.IF)) return ifStatement();
 		if (match(TokenType.PRINT)) return printStatement();
 		if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
 		return expressionStatement();
+	}
+
+	// note that the next is a valid statement:
+	// > `if (first) if (second) whenTrue(); else whenFalse();`
+	// how should this statement be interpreted? should the else clause
+	// be attached to the outer or to the inner if? This is known as "dangling else problem"
+	// the common approach, when not imposing braces at grammar level, as in Swift or Go,
+	// is to _attach the else clause to the nearest if__, as we implement here.
+	private Stmt ifStatement() {
+		consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+		Expr condition = expression();
+		consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+		Stmt thenBranch = statement();
+		Stmt elseBranch = null;
+		if (match(TokenType.ELSE)) {
+			elseBranch = statement();
+		}
+
+		return new Stmt.If(condition, thenBranch, elseBranch);
 	}
 
 	private Stmt printStatement() {
@@ -153,7 +178,7 @@ class Parser {
 
 	// challenge 6.2
 	private Expr ternary() {
-		Expr left = equality();
+		Expr left = or();
 
 		if (match(TokenType.QUESTION)) {
 			Token first = previous();
@@ -167,6 +192,30 @@ class Parser {
 			}
 		}
 		return left;
+	}
+
+	private Expr or() {
+		Expr expr = and();
+
+		while (match(TokenType.OR)) {
+			Token operator = previous();
+			Expr right = and();
+			expr = new Expr.Logical(expr, operator, right);
+		}
+
+		return expr;
+	}
+
+	private Expr and() {
+		Expr expr = equality();
+
+		while (match(TokenType.AND)) {
+			Token operator = previous();
+			Expr right = equality();
+			expr = new Expr.Logical(expr, operator, right);
+		}
+
+		return expr;
 	}
 
 	private Expr equality() {

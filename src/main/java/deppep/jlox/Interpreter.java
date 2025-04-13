@@ -28,8 +28,23 @@ public class Interpreter implements Expr.Visitor<Object>,
 	// expr interface
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
-        return expr.value;
+		return expr.value;
     }
+
+	@Override
+	public Object visitLogicalExpr(Expr.Logical expr) {
+		Object left = evaluate(expr.left);
+
+		// short-circuiting logic. as few as possible evaluations are made and
+		// we return as soon as possible.
+		if (expr.operator.type == TokenType.OR) {
+			if (isTruthy(left)) return left;
+		} else {
+			if (!isTruthy(left)) return left;
+		}
+
+		return evaluate(expr.right);
+	}
 
 	@Override
 	public Object visitGroupingExpr(Expr.Grouping expr) {
@@ -196,6 +211,16 @@ public class Interpreter implements Expr.Visitor<Object>,
 		evaluate(stmt.expression);
 		// note we return null. This is requrired by `Void`.
 		// see note at top.
+		return null;
+	}
+
+	@Override
+	public Void visitIfStmt(Stmt.If stmt) {
+		if (isTruthy(evaluate(stmt.condition))) {
+			execute(stmt.thenBranch);
+		} else if (stmt.elseBranch != null) {
+			execute(stmt.elseBranch);
+		}
 		return null;
 	}
 

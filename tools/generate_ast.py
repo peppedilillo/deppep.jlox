@@ -19,11 +19,13 @@ PRODUCTIONS = {
         ("Unary", (("Token", "operator"), ("Expr", "right"),)),
         ("Grouping", (("Expr", "expression"),)),
         ("Literal", (("Object", "value"),)),
+        ("Logical", (("Expr", "left"), ("Token", "operator"), ("Expr", "right"),)),
         ("Variable", (("Token", "name"),)),
     ),
     "Stmt": (
         ("Block", (("List<Stmt>", "statements"),)),
         ("Expression", (("Expr", "expression"),)),
+        ("If", (("Expr", "condition"), ("Stmt", "thenBranch"), ("Stmt", "elseBranch"),)),
         ("Print", (("Expr", "expression"),)),
         ("Var", (("Token", "name"), ("Expr", "initializer"),)),
     )
@@ -37,7 +39,7 @@ def write_doc(key: str, write: Callable=print):
     write("/**")
     write(" * Implements the syntax grammar:")
     for head, body in PRODUCTIONS[key]:
-        write(f" * {INDENT}{head} -> {arglist(body)}")
+        write(f" * {INDENT}{head} -> {arglist(body)};")
     write(f" * automatically generated with `{Path(__file__).name}` on {datetime.now().strftime('%d/%m/%y %H:%M')}.")
     write("*/")
 
