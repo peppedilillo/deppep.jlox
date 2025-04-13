@@ -6,6 +6,8 @@ The code implement these additional features:
 * ternary operator (challenge 6.2)
 * '+' at start expression error production (challenge 6.3)
 * division by zero runtime error (challenge 7.2)
+* REPL will prints expression values to standard output (challenge 8.1)
+* raises a runtime error when accessing uninitialized variables (challenge 8.2)
 
 These challenges were solved but not implemented and left as comments:
 * sum of strings and arbitrary object (challenge 7.2)
