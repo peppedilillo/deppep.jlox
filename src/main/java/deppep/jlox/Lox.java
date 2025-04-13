@@ -37,7 +37,7 @@ public class Lox {
 	private static void runPrompt() throws IOException {
 		InputStreamReader input = new InputStreamReader(System.in);
 		BufferedReader reader = new BufferedReader(input);
-
+		System.out.print("Hey, you!g\nThis a REPL to the deppep's implementation of jlox, hf.\n\n");
 		for (;;) {
 			System.out.print("> ");
 			String line = reader.readLine();
@@ -56,14 +56,13 @@ public class Lox {
 		List<Stmt> statements = parser.parse();
 
 		// challenge 8.1
-		// repl will print to stdout expression statements
+		// print expression values to std out when in REPL
 		if (repl) {
-			for (int i = 0; i < statements.size(); i++) {
-				if (statements.get(i) instanceof Stmt.Expression) {
+			for (int i = 0; i < statements.size(); i++)
+				if (statements.get(i) instanceof Stmt.Expression)
 					statements.set(i, new Stmt.Print(((Stmt.Expression) statements.get(i)).expression));
-				}
-			}
 		}
+
 		// stop if there was a syntax error
 		if (hadError) return;
 		interpreter.interpret(statements);
@@ -83,9 +82,7 @@ public class Lox {
 	}
 
 	static void runtimeError(RuntimeError error) {
-		System.err.println(error.getMessage() +
-						   "\n[line " + error.token.line + "]"
-			);
+		System.err.println("[line " + error.token.line + "] " + error.getMessage());
 		hadRuntimeError = true;
 	}
 

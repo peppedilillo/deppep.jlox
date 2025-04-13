@@ -44,8 +44,7 @@ class Environment {
 		// errors returning null. the reason for having a RuntimeError here
 		// is to make it easier for mutually recursive functions,
 		// see book page 121 for a nice example.
-		throw new RuntimeError(name,
-							   "Undefined variable '" + name.lexeme + "'.");
+		throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
 	}
 
 	void assign(Token name, Object value) {

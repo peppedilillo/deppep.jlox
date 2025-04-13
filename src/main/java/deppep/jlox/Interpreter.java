@@ -136,7 +136,13 @@ public class Interpreter implements Expr.Visitor<Object>,
 
 	@Override
 	public Object visitVariableExpr(Expr.Variable expr) {
-		return environment.get(expr.name);
+		Object var = environment.get(expr.name);
+
+		// challenge 8.2: raise a runtime error when an uninitialzed variable is accessed
+		if (var == null)
+			throw new RuntimeError(expr.name,
+					"Uninitialized variable '" + expr.name.lexeme + "'.");
+		return var;
 	}
 
 	private void checkNumberOperand(Token operator, Object operand) {
