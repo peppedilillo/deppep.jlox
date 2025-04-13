@@ -37,7 +37,7 @@ public class Lox {
 	private static void runPrompt() throws IOException {
 		InputStreamReader input = new InputStreamReader(System.in);
 		BufferedReader reader = new BufferedReader(input);
-		System.out.print("Hey, you!g\nThis a REPL to the deppep's implementation of jlox, hf.\n\n");
+		System.out.print("Hey, you!\nThis a REPL to the deppep's implementation of jlox, hf.\n\n");
 		for (;;) {
 			System.out.print("> ");
 			String line = reader.readLine();

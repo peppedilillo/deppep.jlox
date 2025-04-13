@@ -4,8 +4,9 @@
  *     Expression -> Expr expression;
  *     If -> Expr condition, Stmt thenBranch, Stmt elseBranch;
  *     Print -> Expr expression;
+ *     While -> Expr condition, Stmt body;
  *     Var -> Token name, Expr initializer;
- * automatically generated with `generate_ast.py` on 13/04/25 19:42.
+ * automatically generated with `generate_ast.py` on 13/04/25 20:29.
 */
 package deppep.jlox;
 
@@ -18,6 +19,7 @@ abstract class Stmt {
         R visitExpressionStmt(Expression expr);
         R visitIfStmt(If expr);
         R visitPrintStmt(Print expr);
+        R visitWhileStmt(While expr);
         R visitVarStmt(Var expr);
     }
 
@@ -75,6 +77,21 @@ abstract class Stmt {
         }
 
         final Expr expression;
+    }
+
+    static class While extends Stmt {
+        While(Expr condition, Stmt body) {
+            this.condition=condition;
+            this.body=body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitWhileStmt(this);
+        }
+
+        final Expr condition;
+        final Stmt body;
     }
 
     static class Var extends Stmt {
