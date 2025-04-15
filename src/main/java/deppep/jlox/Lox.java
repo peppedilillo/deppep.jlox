@@ -33,16 +33,30 @@ public class Lox {
 		if (hadRuntimeError) System.exit(70);
 	}
 
-	// runs a prompt wrapper
+	// REPL
 	private static void runPrompt() throws IOException {
-		InputStreamReader input = new InputStreamReader(System.in);
-		BufferedReader reader = new BufferedReader(input);
 		System.out.print("Hey, you!\nThis a REPL to the deppep's implementation of jlox, hf.\n\n");
+		InputStreamReader input = new InputStreamReader(System.in);
 		for (;;) {
-			System.out.print("> ");
-			String line = reader.readLine();
-			if (line == null) break;
-			run(line, true);
+			System.out.print(">>> ");
+			StringBuilder line = new StringBuilder(); // reader.readLine();
+			int character;
+			while (true) {
+				character = input.read();
+				if (character == -1) {
+					System.out.print("\nGoodbye!");
+					return;
+				}
+				if (character == '\n'){
+					if (line.isEmpty() || line.charAt(line.length() - 1) == '\n') {
+						break;
+					} else {
+						System.out.print("... ");
+					}
+				}
+				line.append((char) character);
+			}
+			run(line.toString(), true);
 			hadError = false;
 		}
 	}
