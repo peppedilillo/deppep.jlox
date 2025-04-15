@@ -1,14 +1,19 @@
 /**
  * A recursive descent, abstact syntax tree parser implementing the grammar:
  *     program          -> declariation* EOF;
- *     declaration      -> varDecl
+ *     declaration      -> varDeclaration
  *                       | statement;
+ *     varDeclaration   -> "var" identifier ( "=" expression )? ";";
  *     statement        -> exprStatement
+ *                       | forStatement
  *                       | ifStatement
  *                       | printStatement
  *                       | whileStatement
  *                       | block;
  *     exprStatement    -> expression ";";
+ *     forStatement     -> "for" "(" varDeclaration | exprStmt | ";" )
+ *                         expression? ";"
+ *                         expression? ")" statement;
  *     ifStatement      -> "if" "(" expression ")" statement ("else" statement)?;
  *     printStatement   -> "print" expression ";";
  *     whileStatement   -> "while" "(" expression ")" statement;
@@ -34,6 +39,7 @@
 package deppep.jlox;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 
 
@@ -102,12 +108,62 @@ class Parser {
 	}
 	
 	private Stmt statement(){
+		if (match(TokenType.FOR)) return forStatement();
 		if (match(TokenType.IF)) return ifStatement();
 		if (match(TokenType.PRINT)) return printStatement();
 		if (match(TokenType.WHILE)) return whileStatement();
 		if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
 
 		return expressionStatement();
+	}
+
+	// this is an example of _desugaring_. for loops in Lox are just syntactic
+	// sugar over while loop. here what we do is to "assemble" a while loop based
+	// on the grammar of the for statement. this is what _desugaring_ is: decompose
+	// a front-end feature using existing, lower-level back-end facilities.
+	// note that we didn't need to add a new for` syntax tree node to Stmt.java,
+	// as `for` is just a wrapper around the while node we already have in place.
+	// nor we had to change the interpreter class in any way.
+	private Stmt forStatement() {
+		// for reference: `for (initializer; condition; increment) body;`
+		consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+		Stmt initializer;
+		if (match(TokenType.SEMICOLON)) {
+			initializer = null;
+		} else if (match(TokenType.VAR)) {
+			initializer = varDeclaration();
+		} else {
+			initializer = expressionStatement();
+		}
+
+		Expr condition = null;
+		if (!check(TokenType.SEMICOLON))
+			condition = expression();
+		consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+		Expr increment = null;
+		if (!check(TokenType.RIGHT_PAREN))
+			increment = expression();
+		consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+		// remember a statement can be a block too
+		Stmt body = statement();
+
+		// the increment statement is performed at the end of the while loop
+		if (increment != null)
+			body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+
+		// this puts will together the loop as a while statement
+		if (condition == null)
+			condition = new Expr.Literal(true);
+		body = new Stmt.While(condition, body);
+
+		// optionally we add the initializer statement, prior to the loop
+		if (initializer != null)
+			body = new Stmt.Block(Arrays.asList(initializer, body));
+
+		return body;
 	}
 
 	// note that the next is a valid statement:
