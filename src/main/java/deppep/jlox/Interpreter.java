@@ -99,18 +99,15 @@ public class Interpreter implements Expr.Visitor<Object>,
 			if (left instanceof String && right instanceof String) {
 				return (String)left + (String)right;
 			}
-		  
-			/** challenge 7.2.
-			// I complete it but comment because i don't like it
-			// implements string concatenation between inhomogenous types
+
+			// challenge 7.2
 			if (left instanceof String) {
 			 	return (String)left + stringify(right);
 			}
-			
 			if (right instanceof String) {
 			 	return stringify(left) + (String)right;
 			}
-			*/
+
 			throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
 		case TokenType.SLASH:
 			checkNumberOperands(expr.operator, left, right);
