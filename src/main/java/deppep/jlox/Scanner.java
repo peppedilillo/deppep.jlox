@@ -22,6 +22,7 @@ class Scanner {
 	static {
 		keywords = new HashMap<>();
 		keywords.put("and", TokenType.AND);
+		keywords.put("break", TokenType.BREAK);  // challenge 9.3
 		keywords.put("class", TokenType.CLASS);
 		keywords.put("else", TokenType.ELSE);
 		keywords.put("false", TokenType.FALSE);

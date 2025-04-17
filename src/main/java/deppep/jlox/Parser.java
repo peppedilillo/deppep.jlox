@@ -1,5 +1,5 @@
 /**
- * A recursive descent, abstact syntax tree parser implementing the grammar:
+ * A recursive descent, abstact syntax tree parser implementing the following grammar:
  *     program          -> declariation* EOF;
  *     declaration      -> varDeclaration
  *                       | statement;
@@ -9,6 +9,7 @@
  *                       | ifStatement
  *                       | printStatement
  *                       | whileStatement
+ *                       | breakStatement
  *                       | block;
  *     exprStatement    -> expression ";";
  *     forStatement     -> "for" "(" varDeclaration | exprStmt | ";" )
@@ -17,6 +18,7 @@
  *     ifStatement      -> "if" "(" expression ")" statement ("else" statement)?;
  *     printStatement   -> "print" expression ";";
  *     whileStatement   -> "while" "(" expression ")" statement;
+ *     breakStatement   -> "break" ";";
  *     block            -> "{" declaration* "}";
  *     expression       -> comma;
  *     comma            -> assignment ("," assignment)+;
@@ -50,6 +52,9 @@ class Parser {
 	
 	private final List<Token> tokens;
 	private int current = 0;
+	// todo: this flag is needed for challenge 9.3
+	//  remove `inLoop` state later, once we'll get some analyzer in place
+	private boolean inLoop = false;
 
 	Parser(List<Token> tokens) {
 		this.tokens = tokens;
@@ -102,13 +107,27 @@ class Parser {
 		consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
 		Expr condition = expression();
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+		// todo: remove `inLoop` state later, once we'll get some analyzer in place
+		inLoop = true;
 		Stmt body = statement();
+		inLoop = false;
 
 		return new Stmt.While(condition, body);
 	}
-	
+
+	// challenge 9.3
+	private Stmt breakStatement() {
+		if (!inLoop) {
+			error(previous(), "Break statement outside loop.");
+		}
+		consume(TokenType.SEMICOLON, "Expect ';' after 'break'.");
+		return new Stmt.Break();
+	}
+
 	private Stmt statement(){
 		if (match(TokenType.FOR)) return forStatement();
+		if (match(TokenType.BREAK)) return breakStatement();
 		if (match(TokenType.IF)) return ifStatement();
 		if (match(TokenType.PRINT)) return printStatement();
 		if (match(TokenType.WHILE)) return whileStatement();
@@ -147,8 +166,11 @@ class Parser {
 			increment = expression();
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
 
+		// todo: remove `inLoop` state later, once we'll get some analyzer in place
+		inLoop = true;
 		// remember a statement can be a block too
 		Stmt body = statement();
+		inLoop = false;
 
 		// the increment statement is performed at the end of the while loop
 		if (increment != null)

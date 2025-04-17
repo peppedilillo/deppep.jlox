@@ -8,6 +8,7 @@ The code implement these additional features:
 * division by zero runtime error (challenge 7.2)
 * REPL will print expression values to standard output (challenge 8.1)
 * raises a runtime error when accessing uninitialized variables (challenge 8.2)
+* break statement (challenge 9.3)
 
 These challenges were solved but not implemented and left as comments:
 * sum of strings and arbitrary object (challenge 7.2)
