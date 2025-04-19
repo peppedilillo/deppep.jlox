@@ -1,8 +1,12 @@
 /**
  * A recursive descent, abstact syntax tree parser implementing the following grammar:
  *     program          -> declariation* EOF;
- *     declaration      -> varDeclaration
+ *     declaration      -> funDeclaration
+ *                       | varDeclaration
  *                       | statement;
+ *     funDeclaration   -> "fun" function;
+ *     function         -> IDENTIFIER "(" parameters? ")" block;
+ *     parameters       -> IDENTIFIER ( "," IDENTIFIER )*;
  *     varDeclaration   -> "var" identifier ( "=" expression )? ";";
  *     statement        -> exprStatement
  *                       | forStatement
@@ -57,6 +61,10 @@ class Parser {
 	// todo: this flag is needed for challenge 9.3
 	//  remove `inLoop` state later, once we'll get some analyzer in place
 	private boolean inLoop = false;
+	// todo: this flag are needed for supporting challenge 6.1 after introducing function
+	//  declaration and calls. They too could be removed implementing an analyzer.
+	private boolean inFunCall = false;
+	private boolean inFunDec = false;
 
 	Parser(List<Token> tokens) {
 		this.tokens = tokens;
@@ -81,6 +89,7 @@ class Parser {
 
 	private Stmt declaration() {
 		try {
+			if (match(TokenType.FUN)) return function("function");
 			if (match(TokenType.VAR)) return varDeclaration();
 			return statement();
 		} catch (ParseError error) {
@@ -233,6 +242,30 @@ class Parser {
 		return statements;
 	}
 
+	private Stmt.Function function(String kind) {
+		Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+		consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+		List<Token> parameters = new ArrayList<>();
+		if (!check(TokenType.RIGHT_PAREN)) {
+			inFunDec = true;
+			do {
+				// again, as with, `call` this is for compatibility with virtual machine implementation.
+				if (parameters.size() >= 255) {
+					error(peek(), "Can't have more than 255 parameters.");
+				}
+				parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
+			} while (match(TokenType.COMMA));
+			inFunDec = false;
+		}
+		consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+		// block assume the left brace to have already been matched.
+		// this allows to have consume here and be more explicit in error messaging,
+		// mentioning correctly if the thing missing the brace is a function or a method.
+		consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+		List<Stmt> body = block();
+		return new Stmt.Function(name, parameters, body);
+	}
+
 	private Expr expression() {
 		return comma();
 	}
@@ -240,6 +273,9 @@ class Parser {
 	// challenge 6.3
 	private Expr comma() {
 		Expr expr = assignment();
+		if (inFunCall || inFunDec) {
+			return expr;
+		}
 		while (match(TokenType.COMMA)) {
 			Token token = previous();
 			Expr right = assignment();
@@ -416,6 +452,7 @@ class Parser {
 	private Expr finishCall(Expr callee) {
 		List<Expr> arguments = new ArrayList<>();
 		if (!check(TokenType.RIGHT_PAREN)) {
+			inFunCall = true;
 			do {
 				// this limit on argument size is imposed for compatibility with
 				// virtual machine implementation. there is nothing stopping us from
@@ -425,10 +462,10 @@ class Parser {
 				}
 				arguments.add(expression());
 			} while (match(TokenType.COMMA));
+			inFunCall = false;
 		}
 
 		Token paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
-
 		return new Expr.Call(callee, paren, arguments);
 	}
 

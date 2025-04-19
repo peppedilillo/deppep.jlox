@@ -14,8 +14,24 @@ public class Interpreter implements Expr.Visitor<Object>,
 						 // to return Void, which is a "boxed void" implementation alike
 						 // `Int` is for `int`.
 						 Stmt.Visitor<Void> {
-	private Environment environment = new Environment();
-	
+	final Environment globals = new Environment();
+	private Environment environment = globals;
+
+	Interpreter() {
+		// this is an example of a native function
+		globals.define("clock", new LoxCallable() {  // crazy java syntax: the value is an anonymous class
+			@Override
+			public int arity() {
+				return 0;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> arguments) {
+				return (double)System.currentTimeMillis() / 1000.0;
+			}
+		});
+	}
+
 	void interpret(List<Stmt> statements) {
 		try {
 			for (Stmt statement: statements) {
@@ -150,7 +166,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 		// checks function's arity against number of arguments actually passed
 		if (arguments.size() != function.arity()) {
 			throw new RuntimeError(expr.paren,
-					"Expected " + function.arity() + "arguments but got " + arguments.size() + ".");
+					"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
 		}
 
 		return function.call(this, arguments);
@@ -234,6 +250,13 @@ public class Interpreter implements Expr.Visitor<Object>,
 		evaluate(stmt.expression);
 		// note we return null. This is requrired by `Void`.
 		// see note at top.
+		return null;
+	}
+
+	@Override
+	public Void visitFunctionStmt(Stmt.Function stmt) {
+		LoxFunction function = new LoxFunction(stmt);
+		environment.define(stmt.name.lexeme, function);
 		return null;
 	}
 
