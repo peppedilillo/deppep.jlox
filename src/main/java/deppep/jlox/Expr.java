@@ -4,13 +4,16 @@
  *     Ternary -> Expr left, Token first, Expr middle, Token second, Expr right;
  *     Binary -> Expr left, Token operator, Expr right;
  *     Unary -> Token operator, Expr right;
+ *     Call -> Expr callee, Token paren, List<Expr> arguments;
  *     Grouping -> Expr expression;
  *     Literal -> Object value;
  *     Logical -> Expr left, Token operator, Expr right;
  *     Variable -> Token name;
- * automatically generated with `generate_ast.py` on 13/04/25 20:09.
+ * automatically generated with `generate_ast.py` on 19/04/25 18:40.
 */
 package deppep.jlox;
+
+import java.util.List;
 
 
 abstract class Expr {
@@ -19,6 +22,7 @@ abstract class Expr {
         R visitTernaryExpr(Ternary expr);
         R visitBinaryExpr(Binary expr);
         R visitUnaryExpr(Unary expr);
+        R visitCallExpr(Call expr);
         R visitGroupingExpr(Grouping expr);
         R visitLiteralExpr(Literal expr);
         R visitLogicalExpr(Logical expr);
@@ -91,6 +95,23 @@ abstract class Expr {
 
         final Token operator;
         final Expr right;
+    }
+
+    static class Call extends Expr {
+        Call(Expr callee, Token paren, List<Expr> arguments) {
+            this.callee=callee;
+            this.paren=paren;
+            this.arguments=arguments;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCallExpr(this);
+        }
+
+        final Expr callee;
+        final Token paren;
+        final List<Expr> arguments;
     }
 
     static class Grouping extends Expr {

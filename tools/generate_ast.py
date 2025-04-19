@@ -11,12 +11,18 @@ from datetime import datetime
 
 INDENT = " " * 4
 
+IMPORTS = {
+    "Expr": ("java.util.List",),
+    "Stmt": ("java.util.List",),
+}
+
 PRODUCTIONS = {
     "Expr": (
         ("Assign", (("Token", "name"), ("Expr", "value"),)),
         ("Ternary", (("Expr", "left"), ("Token", "first"), ("Expr", "middle"), ("Token", "second"), ("Expr", "right"),)),
         ("Binary", (("Expr", "left"), ("Token", "operator"), ("Expr", "right"),)),
         ("Unary", (("Token", "operator"), ("Expr", "right"),)),
+        ("Call", (("Expr", "callee"), ("Token", "paren"), ("List<Expr>", "arguments"),)),
         ("Grouping", (("Expr", "expression"),)),
         ("Literal", (("Object", "value"),)),
         ("Logical", (("Expr", "left"), ("Token", "operator"), ("Expr", "right"),)),
@@ -50,9 +56,9 @@ def write_package_name(pname: str, key: str, write: Callable=print):
     write("")
 
 def write_imports(key: str, write: Callable=print):
-    if key == "Stmt":
-        write("import java.util.List;")
-        write("")
+    for entry in IMPORTS[key]:
+        write(f"import {entry};")
+    write("")
     write("")
     
 def write_productions(key: str, write: Callable=print):
