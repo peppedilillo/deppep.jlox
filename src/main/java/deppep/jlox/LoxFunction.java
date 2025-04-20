@@ -21,9 +21,15 @@ class LoxFunction implements LoxCallable {
         for (int i=0; i < declaration.params.size(); i++) {
             environment.define(declaration.params.get(i).lexeme, arguments.get(i));
         }
-        // `executeBlock` will set the interpreter's environment to the function's one
-        // and execute the declaration body in it.
-        interpreter.executeBlock(declaration.body, environment);
+
+        // return statement are implemented as exceptions (as we do with break)
+        try {
+            // `executeBlock` will set the interpreter's environment to the function's one
+            // and execute the declaration body in it.
+            interpreter.executeBlock(declaration.body, environment);
+        } catch (ReturnException returnValue) {
+            return returnValue.value;
+        }
         // just before returning, executeBlock will reset the interpreter environment to
         // the one of the callee, the function environment being discarded
         return null;

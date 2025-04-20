@@ -5,10 +5,11 @@
  *     Function -> Token name, List<Token> params, List<Stmt> body;
  *     If -> Expr condition, Stmt thenBranch, Stmt elseBranch;
  *     Print -> Expr expression;
+ *     Return -> Token keyword, Expr value;
  *     While -> Expr condition, Stmt body;
  *     Break -> ;
  *     Var -> Token name, Expr initializer;
- * automatically generated with `generate_ast.py` on 19/04/25 20:35.
+ * automatically generated with `generate_ast.py` on 20/04/25 19:06.
 */
 package deppep.jlox;
 
@@ -22,6 +23,7 @@ abstract class Stmt {
         R visitFunctionStmt(Function expr);
         R visitIfStmt(If expr);
         R visitPrintStmt(Print expr);
+        R visitReturnStmt(Return expr);
         R visitWhileStmt(While expr);
         R visitBreakStmt(Break expr);
         R visitVarStmt(Var expr);
@@ -98,6 +100,21 @@ abstract class Stmt {
         }
 
         final Expr expression;
+    }
+
+    static class Return extends Stmt {
+        Return(Token keyword, Expr value) {
+            this.keyword=keyword;
+            this.value=value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitReturnStmt(this);
+        }
+
+        final Token keyword;
+        final Expr value;
     }
 
     static class While extends Stmt {
