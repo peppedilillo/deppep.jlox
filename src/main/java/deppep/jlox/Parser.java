@@ -257,12 +257,22 @@ class Parser {
 		return statements;
 	}
 
-	private Stmt.Function function(String kind) {
-		Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
-		Expr.AnonFunction definition = anonFunction(kind);
-		return new Stmt.Function(name, definition);
+	private Stmt function(String kind) {
+		if (match(TokenType.IDENTIFIER)) {
+			Token name = previous();
+			Expr.AnonFunction definition = anonFunction(kind);
+			return new Stmt.Function(name, definition);
+		}
+		// challenge 10.2
+		// this will take care of the corner expression statement `fn () {};` which
+		// shall be interpreted as an expression statement. without this branch, we
+		// would interpret it as a function definition, and fail on a missing name.
+		Expr.AnonFunction anonFunction = anonFunction("anonymous function");
+		consume(TokenType.SEMICOLON, "Expect ';' after anonymous function definition.");
+		return new Stmt.Expression(anonFunction);
 	}
 
+	// challenge 10.2
 	private Expr.AnonFunction anonFunction(String kind) {
 		consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
 		List<Token> parameters = new ArrayList<>();
