@@ -10,6 +10,7 @@ The code implement these additional features:
 * REPL will print expression values to standard output (challenge 8.1)
 * raises a runtime error when accessing uninitialized variables (challenge 8.2)
 * break statement (challenge 9.3)
+* anonymous functions (challenge 10.2)
 
 Solution to challenges which would require mantainance without introducing any interesting feature are given in separate branches:
 * reverse polish notation printer (challenge 5.3)
