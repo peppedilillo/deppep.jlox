@@ -245,7 +245,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 		return object.toString();
 	}
 
-	private Object evaluate(Expr expr){
+	Object evaluate(Expr expr){
 		return expr.accept(this);
 	}
 
@@ -330,7 +330,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 		return value;
 	}
 
-	private void execute(Stmt stmt) {
+	void execute(Stmt stmt) {
 		stmt.accept(this);
 	}
 
