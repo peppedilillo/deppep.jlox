@@ -54,6 +54,11 @@ class AstPrinter implements Expr.Visitor<String> {
 		return parenthesize(expr.operator.lexeme, expr.right);
 	}
 
+	@Override
+	public String visitAnonFunctionExpr(Expr.AnonFunction expr) {
+		return parenthesize("fun anonymous");
+	}
+
 	private String parenthesize(String name, Expr... exprs) {
 		StringBuilder builder = new StringBuilder();
 

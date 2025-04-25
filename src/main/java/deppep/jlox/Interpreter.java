@@ -2,6 +2,7 @@ package deppep.jlox;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 
 // Lox objects are stored in Java's objects. Hence the interpreter return these.
@@ -173,6 +174,11 @@ public class Interpreter implements Expr.Visitor<Object>,
 	}
 
 	@Override
+	public LoxCallable visitAnonFunctionExpr(Expr.AnonFunction expr) {
+		return new LoxFunction(null, expr, environment);
+	}
+
+	@Override
 	public Object visitUnaryExpr(Expr.Unary expr) {
 		Object right = evaluate(expr.right);
 
@@ -255,7 +261,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 
 	@Override
 	public Void visitFunctionStmt(Stmt.Function stmt) {
-		LoxFunction function = new LoxFunction(stmt, environment);
+		LoxFunction function = new LoxFunction(stmt.name, stmt.definition, environment);
 		environment.define(stmt.name.lexeme, function);
 		return null;
 	}

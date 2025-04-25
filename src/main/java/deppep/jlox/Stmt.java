@@ -2,14 +2,14 @@
  * Implements the syntax grammar:
  *     Block -> List<Stmt> statements;
  *     Expression -> Expr expression;
- *     Function -> Token name, List<Token> params, List<Stmt> body;
+ *     Function -> Token name, Expr.AnonFunction definition;
  *     If -> Expr condition, Stmt thenBranch, Stmt elseBranch;
  *     Print -> Expr expression;
  *     Return -> Token keyword, Expr value;
  *     While -> Expr condition, Stmt body;
  *     Break -> ;
  *     Var -> Token name, Expr initializer;
- * automatically generated with `generate_ast.py` on 20/04/25 19:06.
+ * automatically generated with `generate_ast.py` on 25/04/25 12:15.
 */
 package deppep.jlox;
 
@@ -56,10 +56,9 @@ abstract class Stmt {
     }
 
     static class Function extends Stmt {
-        Function(Token name, List<Token> params, List<Stmt> body) {
+        Function(Token name, Expr.AnonFunction definition) {
             this.name=name;
-            this.params=params;
-            this.body=body;
+            this.definition=definition;
         }
 
         @Override
@@ -68,8 +67,7 @@ abstract class Stmt {
         }
 
         final Token name;
-        final List<Token> params;
-        final List<Stmt> body;
+        final Expr.AnonFunction definition;
     }
 
     static class If extends Stmt {

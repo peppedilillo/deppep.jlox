@@ -43,6 +43,7 @@
  *                       | primary;
  *     call             -> primary ( "(" arguments? ")" )*;
  *     arguments        -> expression ( "," expression )*;
+ *     anonFunction     -> "fun" "(" parameters ")" block;
  *     primary          -> NUMBER | STRING | "true" | "false" | "nil"
  *                       | "(" expression ")";
 */
@@ -258,6 +259,11 @@ class Parser {
 
 	private Stmt.Function function(String kind) {
 		Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+		Expr.AnonFunction definition = anonFunction(kind);
+		return new Stmt.Function(name, definition);
+	}
+
+	private Expr.AnonFunction anonFunction(String kind) {
 		consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
 		List<Token> parameters = new ArrayList<>();
 		if (!check(TokenType.RIGHT_PAREN)) {
@@ -277,7 +283,7 @@ class Parser {
 		// mentioning correctly if the thing missing the brace is a function or a method.
 		consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
 		List<Stmt> body = block();
-		return new Stmt.Function(name, parameters, body);
+		return new Expr.AnonFunction(parameters, body);
 	}
 
 	private Expr expression() {
@@ -485,6 +491,7 @@ class Parser {
 
 	private Expr primary() {
 		// the highest level of precedence, or the bottom of the grammar
+		if (match(TokenType.FUN)) return anonFunction("anonymous function");
 		if (match(TokenType.FALSE)) return new Expr.Literal(false);
 		if (match(TokenType.TRUE)) return new Expr.Literal(true);
 		if (match(TokenType.NIL)) return new Expr.Literal(null);

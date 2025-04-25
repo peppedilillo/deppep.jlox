@@ -5,11 +5,12 @@
  *     Binary -> Expr left, Token operator, Expr right;
  *     Unary -> Token operator, Expr right;
  *     Call -> Expr callee, Token paren, List<Expr> arguments;
+ *     AnonFunction -> List<Token> params, List<Stmt> body;
  *     Grouping -> Expr expression;
  *     Literal -> Object value;
  *     Logical -> Expr left, Token operator, Expr right;
  *     Variable -> Token name;
- * automatically generated with `generate_ast.py` on 19/04/25 18:40.
+ * automatically generated with `generate_ast.py` on 25/04/25 11:23.
 */
 package deppep.jlox;
 
@@ -23,6 +24,7 @@ abstract class Expr {
         R visitBinaryExpr(Binary expr);
         R visitUnaryExpr(Unary expr);
         R visitCallExpr(Call expr);
+        R visitAnonFunctionExpr(AnonFunction expr);
         R visitGroupingExpr(Grouping expr);
         R visitLiteralExpr(Literal expr);
         R visitLogicalExpr(Logical expr);
@@ -112,6 +114,21 @@ abstract class Expr {
         final Expr callee;
         final Token paren;
         final List<Expr> arguments;
+    }
+
+    static class AnonFunction extends Expr {
+        AnonFunction(List<Token> params, List<Stmt> body) {
+            this.params=params;
+            this.body=body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitAnonFunctionExpr(this);
+        }
+
+        final List<Token> params;
+        final List<Stmt> body;
     }
 
     static class Grouping extends Expr {
