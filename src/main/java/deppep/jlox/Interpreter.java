@@ -210,7 +210,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 		}
 		// challenge 8.2: raise a runtime error when an uninitialzed variable is accessed
 		if (var == null) {
-			throw new RuntimeError(expr.name, "Uninitialized variable '" + expr.name.lexeme + "'.");
+			throw new RuntimeError(name, "Uninitialized variable '" + name.lexeme + "'.");
 		}
 		return var;
 	}
