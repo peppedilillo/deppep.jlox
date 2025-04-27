@@ -49,8 +49,3 @@ java -cp target/classes deppep.jlox.Lox script.lox
 ```bash
 mvn test
 ```
-
-## Code dump
-```bash
-repomix --ignore=".idea,target" .
-```
