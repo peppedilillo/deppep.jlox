@@ -20,6 +20,8 @@ public class FunctionTest {
         Parser parser = new Parser(tokens);
         List<Stmt> statements = parser.parse();
         Interpreter interpreter = new Interpreter();
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
 
         // reset error flags which we will check later.
         Lox.hadError = false;
