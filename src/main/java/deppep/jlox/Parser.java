@@ -61,11 +61,9 @@ class Parser {
 	
 	private final List<Token> tokens;
 	private int current = 0;
-	// todo: this flag is needed for challenge 9.3
-	//  remove `inLoop` state later, once we'll get some analyzer in place
-	private boolean inLoop = false;
 	// todo: this flag are needed for supporting challenge 6.1 after introducing function
-	//  declaration and calls. They too could be removed implementing an analyzer.
+	//  declaration and calls. Even with our static resolver it is not easy to remove these
+	//  flags. Could it be right to have them in parser? Think about it.
 	private boolean inFunCall = false;
 	private boolean inFunDec = false;
 
@@ -122,21 +120,15 @@ class Parser {
 		Expr condition = expression();
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
 
-		// todo: remove `inLoop` state later, once we'll get some analyzer in place
-		inLoop = true;
 		Stmt body = statement();
-		inLoop = false;
-
 		return new Stmt.While(condition, body);
 	}
 
 	// challenge 9.3
 	private Stmt breakStatement() {
-		if (!inLoop) {
-			error(previous(), "Break statement outside loop.");
-		}
+		Token keyword = previous();
 		consume(TokenType.SEMICOLON, "Expect ';' after 'break'.");
-		return new Stmt.Break();
+		return new Stmt.Break(keyword);
 	}
 
 	private Stmt statement(){
@@ -181,11 +173,8 @@ class Parser {
 			increment = expression();
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
 
-		// todo: remove `inLoop` state later, once we'll get some analyzer in place
-		inLoop = true;
 		// remember a statement can be a block too
 		Stmt body = statement();
-		inLoop = false;
 
 		// the increment statement is performed at the end of the while loop
 		if (increment != null)

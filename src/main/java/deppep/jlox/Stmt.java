@@ -7,9 +7,9 @@
  *     Print -> Expr expression;
  *     Return -> Token keyword, Expr value;
  *     While -> Expr condition, Stmt body;
- *     Break -> ;
+ *     Break -> Token keyword;
  *     Var -> Token name, Expr initializer;
- * automatically generated with `generate_ast.py` on 25/04/25 12:15.
+ * automatically generated with `generate_ast.py` on 27/04/25 11:33.
 */
 package deppep.jlox;
 
@@ -131,7 +131,8 @@ abstract class Stmt {
     }
 
     static class Break extends Stmt {
-        Break() {
+        Break(Token keyword) {
+            this.keyword=keyword;
         }
 
         @Override
@@ -139,6 +140,7 @@ abstract class Stmt {
             return visitor.visitBreakStmt(this);
         }
 
+        final Token keyword;
     }
 
     static class Var extends Stmt {

@@ -12,6 +12,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     // and set it to true when the variables is defined.
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
+    // challenge 9,3
+    private LoopType currentLoop = LoopType.NONE;
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -20,6 +22,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private enum FunctionType {
         NONE,
         FUNCTION
+    }
+
+    private enum LoopType {
+        NONE,
+        LOOP
     }
 
     @Override
@@ -60,12 +67,17 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         resolve(stmt.condition);
+        currentLoop = LoopType.LOOP;
         resolve(stmt.body);
+        currentLoop = LoopType.NONE;
         return null;
     }
 
     @Override
     public Void visitBreakStmt(Stmt.Break stmt) {
+        if (currentLoop == LoopType.LOOP) {
+            Lox.error(stmt.keyword, "Can't break outside of a loop.'");
+        }
         return null;
     }
 

@@ -37,7 +37,7 @@ PRODUCTIONS = {
         ("Print", (("Expr", "expression"),)),
         ("Return", (("Token", "keyword"), ("Expr", "value"),)),
         ("While", (("Expr", "condition"), ("Stmt", "body"),)),
-        ("Break", ()),
+        ("Break", (("Token", "keyword"),)),
         ("Var", (("Token", "name"), ("Expr", "initializer"),)),
     )
 }
