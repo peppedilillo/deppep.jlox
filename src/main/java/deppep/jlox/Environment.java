@@ -19,18 +19,36 @@ class Environment {
 	}
 
 	void define(String name, Object value) {
-		// note we don't check if `name` is in environment already.
-		// this means that this program won't error:
-		//
-		// var a = "before";
-		// print a; // "before"
-		// var b = "after";
-		// print b; // "after"
-		//
-		// this is no trivial choice. the goal of this is to allow
-		// for a better REPL, where redefining a variable is common
-		// and having error at each redefinition would be annoying
+		/* note we don't check if `name` is in environment already.
+		 * this means that this program won't error:
+		 * ```var a = "before";
+		 * print a; // "before"
+		 * var b = "after";
+		 * print b; // "after"```
+		 * this is no trivial choice. the goal of this is to allow
+		 * for a better REPL, where redefining a variable is common
+		 * and having error at each redefinition would be annoying */
 		values.put(name, value);
+	}
+
+	Object getAt(int distance, String name) {
+		// don't have to check for the variable to be there: we are assuming
+		// that the resolver did its job right. this is delicate, since it makes
+		// for a strong coupling between the environment and the resolver.
+		return ancestor(distance).values.get(name);
+	}
+
+	void assignAt(int distance, Token name, Object value) {
+		ancestor(distance).values.put(name.lexeme, value);
+	}
+
+	Environment ancestor(int distance) {
+		Environment environment = this;
+		for (int i = 0; i < distance; i++) {
+			environment = environment.enclosing;
+		}
+
+		return environment;
 	}
 
 	Object get(Token name) {

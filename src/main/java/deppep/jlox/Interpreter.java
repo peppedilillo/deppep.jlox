@@ -1,9 +1,9 @@
 package deppep.jlox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
-
+import java.util.Map;
 
 // Lox objects are stored in Java's objects. Hence the interpreter return these.
 // kinda cool that the difference between expression and statements is higlighted
@@ -17,6 +17,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 						 Stmt.Visitor<Void> {
 	final Environment globals = new Environment();
 	private Environment environment = globals;
+	private final Map<Expr, Integer> locals = new HashMap<>();
 
 	Interpreter() {
 		// this is an example of a native function
@@ -196,12 +197,21 @@ public class Interpreter implements Expr.Visitor<Object>,
 
 	@Override
 	public Object visitVariableExpr(Expr.Variable expr) {
-		Object var = environment.get(expr.name);
+		return lookUpVariable(expr.name, expr);
+	}
 
+	private Object lookUpVariable(Token name, Expr expr) {
+		Object var = null;
+		Integer distance = locals.get(expr);
+		if (distance != null) {
+			var = environment.getAt(distance, name.lexeme);
+		} else {
+			var = globals.get(name);
+		}
 		// challenge 8.2: raise a runtime error when an uninitialzed variable is accessed
-		if (var == null)
-			throw new RuntimeError(expr.name,
-					"Uninitialized variable '" + expr.name.lexeme + "'.");
+		if (var == null) {
+			throw new RuntimeError(expr.name, "Uninitialized variable '" + expr.name.lexeme + "'.");
+		}
 		return var;
 	}
 
@@ -245,6 +255,7 @@ public class Interpreter implements Expr.Visitor<Object>,
 		return object.toString();
 	}
 
+	// could be private, but we have some tests using this method
 	Object evaluate(Expr expr){
 		return expr.accept(this);
 	}
@@ -326,12 +337,23 @@ public class Interpreter implements Expr.Visitor<Object>,
 	@Override
 	public Object visitAssignExpr(Expr.Assign expr) {
 		Object value = evaluate(expr.value);
-		environment.assign(expr.name, value);
+
+		Integer distance = locals.get(expr);
+		if (distance != null) {
+			environment.assignAt(distance, expr.name, value);
+		} else {
+			globals.assign(expr.name, value);
+		}
 		return value;
 	}
 
+	// could be private but we have tests using this
 	void execute(Stmt stmt) {
 		stmt.accept(this);
+	}
+
+	void resolve(Expr expr, int depth) {
+		locals.put(expr, depth);
 	}
 
 	@Override
