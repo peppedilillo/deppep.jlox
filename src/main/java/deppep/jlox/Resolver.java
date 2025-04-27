@@ -75,8 +75,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitBreakStmt(Stmt.Break stmt) {
-        if (currentLoop == LoopType.LOOP) {
-            Lox.error(stmt.keyword, "Can't break outside of a loop.'");
+        if (currentLoop != LoopType.LOOP) {
+            Lox.error(stmt.keyword, "Can't break outside of a loop.");
         }
         return null;
     }
