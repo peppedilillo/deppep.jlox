@@ -233,6 +233,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private void endScope() {
         Map<String, VarInfo> scope = scopes.pop();
+
+        // challenge 11.3
+        // ending a scope we check if each variable in it was ever accessed,
+        // and, if not, we report an error.
         for (Map.Entry<String, VarInfo> entry : scope.entrySet()) {
             VarInfo var = entry.getValue();
             if (!var.accessed) {
