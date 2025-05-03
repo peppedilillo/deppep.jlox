@@ -10,10 +10,15 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     //  why boolean? we will set values to `false` when a variable is only declared,
     // and set it to true when the variables is defined.
-    private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private final Stack<Map<String, VarInfo>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
-    // challenge 9,3
+    // challenge 9.3
     private LoopType currentLoop = LoopType.NONE;
+
+    // challenge 11.3
+    // rather than storing a single value, we are storing a record, transforming our
+    // variable map in a sort of table
+    private record VarInfo(Token keyword, boolean initialized, boolean accessed) {}
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -169,16 +174,24 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitVariableExpr(Expr.Variable expr) {
-        if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
-            /* this bit will raise an error when the variable is accessed in its own
-             * initializer, and take care of code like this:
-             * `var a = "outer"; { var a = a; }`
-             * the alternative is either to initialize the innermost `a` to `outer`.
-             * but, if so, why? we could just avoid the line altogether.
-             * alternatively we could initialize the innermost `a` to `nil` but, again,
-             * why? wouldn't it just be better to initialize it directly to the nil value?
-             * we choose to give a hint to the user, and return a compile-time error. */
-            Lox.error(expr.name, "Can't read local variable in its own initializer.");
+        if (!scopes.isEmpty()) {
+            VarInfo var = scopes.peek().get(expr.name.lexeme);
+            if (var != null) {
+                if (!var.initialized) {
+                    /* this bit will raise an error when the variable is accessed in its own
+                     * initializer, and take care of code like this:
+                     * `var a = "outer"; { var a = a; }`
+                     * the alternative is either to initialize the innermost `a` to `outer`.
+                     * but, if so, why? we could just avoid the line altogether.
+                     * alternatively we could initialize the innermost `a` to `nil` but, again,
+                     * why? wouldn't it just be better to initialize it directly to the nil value?
+                     * we choose to give a hint to the user, and return a compile-time error. */
+                    Lox.error(expr.name, "Can't read local variable in its own initializer.");
+                } else if (!var.accessed) {
+                    // challenge 11.3
+                    scopes.peek().put(expr.name.lexeme, new VarInfo(var.keyword, var.initialized, true));
+                }
+            }
         }
 
         resolveLocal(expr, expr.name);
@@ -215,32 +228,39 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private void beginScope() {
-        scopes.push(new HashMap<String, Boolean>());
+        scopes.push(new HashMap<>());
     }
 
     private void endScope() {
-        scopes.pop();
+        Map<String, VarInfo> scope = scopes.pop();
+        for (Map.Entry<String, VarInfo> entry : scope.entrySet()) {
+            VarInfo var = entry.getValue();
+            if (!var.accessed) {
+                Lox.error(var.keyword,
+                        "Variable was defined but never accessed.");
+            }
+        }
     }
 
     private void declare(Token name) {
         if (scopes.isEmpty()) return;
 
-        Map<String, Boolean> scope = scopes.peek();
+        Map<String, VarInfo> scope = scopes.peek();
         if (scope.containsKey(name.lexeme)) {
             Lox.error(name, "Already a variable with this name in this scope.");
         }
-        scope.put(name.lexeme, false);
+        scope.put(name.lexeme, new VarInfo(name, false, false));
     }
 
     private void define(Token name) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.lexeme, true);
+        scopes.peek().put(name.lexeme, new VarInfo(name, true, false));
     }
 
     private void resolveLocal(Expr expr, Token name) {
         for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
-                // `size - 1 -i` will be 0 if we are in the innermost scope
+                // `size - 1 - i` will be 0 if we are in the innermost scope
                 // 1 if we are in the first outermost scope and so on..
                 interpreter.resolve(expr, scopes.size() - 1 - i);
                 return;
