@@ -10,7 +10,7 @@ import java.util.Map;
 // well in this declaration: expression returns values (Java's Object in our
 // implementation); statements do not return values (Void) but have side-effects.
 public class Interpreter implements Expr.Visitor<Object>,
-						 // a technique note on the next line. For some obscure reason
+						 // a technical note on the next line. For some obscure reason
 						 // Java do not let you return `void` as generic type. You have
 						 // to return Void, which is a "boxed void" implementation alike
 						 // `Int` is for `int`.
