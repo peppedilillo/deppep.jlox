@@ -1,6 +1,7 @@
 /**
  * Implements the syntax grammar:
  *     Block -> List<Stmt> statements;
+ *     Class -> Token name, List<Stmt.Function> methods;
  *     Expression -> Expr expression;
  *     Function -> Token name, Expr.AnonFunction definition;
  *     If -> Expr condition, Stmt thenBranch, Stmt elseBranch;
@@ -9,7 +10,7 @@
  *     While -> Expr condition, Stmt body;
  *     Break -> Token keyword;
  *     Var -> Token name, Expr initializer;
- * automatically generated with `generate_ast.py` on 27/04/25 11:33.
+ * automatically generated with `generate_ast.py` on 08/05/25 23:05.
 */
 package deppep.jlox;
 
@@ -19,6 +20,7 @@ import java.util.List;
 abstract class Stmt {
     interface Visitor<R> {
         R visitBlockStmt(Block expr);
+        R visitClassStmt(Class expr);
         R visitExpressionStmt(Expression expr);
         R visitFunctionStmt(Function expr);
         R visitIfStmt(If expr);
@@ -40,6 +42,21 @@ abstract class Stmt {
         }
 
         final List<Stmt> statements;
+    }
+
+    static class Class extends Stmt {
+        Class(Token name, List<Stmt.Function> methods) {
+            this.name=name;
+            this.methods=methods;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitClassStmt(this);
+        }
+
+        final Token name;
+        final List<Stmt.Function> methods;
     }
 
     static class Expression extends Stmt {

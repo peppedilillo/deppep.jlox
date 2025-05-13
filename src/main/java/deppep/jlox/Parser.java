@@ -1,9 +1,11 @@
 /**
  * A recursive descent, abstact syntax tree parser implementing the following grammar:
  *     program          -> declariation* EOF;
- *     declaration      -> funDeclaration
+ *     declaration      -> classDeclaration
+ *                       | funDeclaration
  *                       | varDeclaration
  *                       | statement;
+ *     classDeclaration -> "class" IDENTIFIER "{" function* "}";
  *     funDeclaration   -> "fun" function;
  *     function         -> IDENTIFIER "(" parameters? ")" block;
  *     parameters       -> IDENTIFIER ( "," IDENTIFIER )*;
@@ -28,7 +30,7 @@
  *     block            -> "{" declaration* "}";
  *     expression       -> comma;
  *     comma            -> assignment ("," assignment)+;
- *     assignment       -> IDENTIFIER "=" assignment
+ *     assignment       -> (call ".")? IDENTIFIER "=" assignment;
  *                       | ternary;
  *     ternary          -> logic_or "?" ternary ":" ternary
  *                       | logic_or;
@@ -41,7 +43,7 @@
  *     factor           -> unary (("/" | "*") unary)*;
  *     unary            -> ("!" | "-") unary
  *                       | primary;
- *     call             -> primary ( "(" arguments? ")" )*;
+ *     call             -> primary ( "(" arguments? ")" | "." IDENTIFIER )*;
  *     arguments        -> expression ( "," expression )*;
  *     anonFunction     -> "fun" "(" parameters ")" block;
  *     primary          -> NUMBER | STRING | "true" | "false" | "nil"
@@ -90,6 +92,7 @@ class Parser {
 
 	private Stmt declaration() {
 		try {
+			if (match(TokenType.CLASS)) return classDeclaration();
 			if (match(TokenType.FUN)) return function("function");
 			if (match(TokenType.VAR)) return varDeclaration();
 			return statement();
@@ -101,6 +104,19 @@ class Parser {
 			synchronize();
 			return null;
 		}
+	}
+
+	private Stmt classDeclaration() {
+		Token name = consume(TokenType.IDENTIFIER, "Expected class name.");
+		consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
+		List<Stmt.Function> methods = new ArrayList<>();
+		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+			// since our `function` was modified to deal with anonymous fs, we need
+			// to cast here to a Stmt.Function.
+			methods.add((Stmt.Function)function("method"));
+		}
+		consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
+		return new Stmt.Class(name, methods);
 	}
 
 	private Stmt varDeclaration() {
@@ -316,6 +332,9 @@ class Parser {
 			if (expr instanceof Expr.Variable) {
 				Token name = ((Expr.Variable) expr).name;
 				return new Expr.Assign(name, right);
+			} else if (expr instanceof Expr.Get) {
+				Expr.Get get = (Expr.Get)expr;
+				return new Expr.Set(get.object, get.name, right);
 			}
 			// only report. no need to synchronize.
 			error(equals, "Invalid assignment target.");
@@ -460,6 +479,9 @@ class Parser {
 		while (true) {
 			if (match(TokenType.LEFT_PAREN)) {
 				expr = finishCall(expr);
+			} else if (match(TokenType.DOT)) {
+				Token name = consume(TokenType.IDENTIFIER, "Expected property name after '.'");
+				expr = new Expr.Get(expr, name);
 			} else {
 				break;
 			}

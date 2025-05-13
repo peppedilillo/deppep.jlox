@@ -21,8 +21,10 @@ PRODUCTIONS = {
         ("Assign", (("Token", "name"), ("Expr", "value"),)),
         ("Ternary", (("Expr", "left"), ("Token", "first"), ("Expr", "middle"), ("Token", "second"), ("Expr", "right"),)),
         ("Binary", (("Expr", "left"), ("Token", "operator"), ("Expr", "right"),)),
+        ("Set", (("Expr", "object"), ("Token", "name"), ("Expr", "value"),)),
         ("Unary", (("Token", "operator"), ("Expr", "right"),)),
         ("Call", (("Expr", "callee"), ("Token", "paren"), ("List<Expr>", "arguments"),)),
+        ("Get", (("Expr", "object"), ("Token", "name"),)),
         ("AnonFunction", (("List<Token>", "params"), ("List<Stmt>", "body"),)),
         ("Grouping", (("Expr", "expression"),)),
         ("Literal", (("Object", "value"),)),
@@ -31,6 +33,7 @@ PRODUCTIONS = {
     ),
     "Stmt": (
         ("Block", (("List<Stmt>", "statements"),)),
+        ("Class", (("Token", "name"), ("List<Stmt.Function>", "methods"),)),
         ("Expression", (("Expr", "expression"),)),
         ("Function", (("Token", "name"), ("Expr.AnonFunction", "definition"),)),
         ("If", (("Expr", "condition"), ("Stmt", "thenBranch"), ("Stmt", "elseBranch"),)),

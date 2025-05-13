@@ -3,14 +3,16 @@
  *     Assign -> Token name, Expr value;
  *     Ternary -> Expr left, Token first, Expr middle, Token second, Expr right;
  *     Binary -> Expr left, Token operator, Expr right;
+ *     Set -> Expr object, Token name, Expr value;
  *     Unary -> Token operator, Expr right;
  *     Call -> Expr callee, Token paren, List<Expr> arguments;
+ *     Get -> Expr object, Token name;
  *     AnonFunction -> List<Token> params, List<Stmt> body;
  *     Grouping -> Expr expression;
  *     Literal -> Object value;
  *     Logical -> Expr left, Token operator, Expr right;
  *     Variable -> Token name;
- * automatically generated with `generate_ast.py` on 25/04/25 11:23.
+ * automatically generated with `generate_ast.py` on 13/05/25 22:13.
 */
 package deppep.jlox;
 
@@ -22,8 +24,10 @@ abstract class Expr {
         R visitAssignExpr(Assign expr);
         R visitTernaryExpr(Ternary expr);
         R visitBinaryExpr(Binary expr);
+        R visitSetExpr(Set expr);
         R visitUnaryExpr(Unary expr);
         R visitCallExpr(Call expr);
+        R visitGetExpr(Get expr);
         R visitAnonFunctionExpr(AnonFunction expr);
         R visitGroupingExpr(Grouping expr);
         R visitLiteralExpr(Literal expr);
@@ -84,6 +88,23 @@ abstract class Expr {
         final Expr right;
     }
 
+    static class Set extends Expr {
+        Set(Expr object, Token name, Expr value) {
+            this.object=object;
+            this.name=name;
+            this.value=value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSetExpr(this);
+        }
+
+        final Expr object;
+        final Token name;
+        final Expr value;
+    }
+
     static class Unary extends Expr {
         Unary(Token operator, Expr right) {
             this.operator=operator;
@@ -114,6 +135,21 @@ abstract class Expr {
         final Expr callee;
         final Token paren;
         final List<Expr> arguments;
+    }
+
+    static class Get extends Expr {
+        Get(Expr object, Token name) {
+            this.object=object;
+            this.name=name;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitGetExpr(this);
+        }
+
+        final Expr object;
+        final Token name;
     }
 
     static class AnonFunction extends Expr {
