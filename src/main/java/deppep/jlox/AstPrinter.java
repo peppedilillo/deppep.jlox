@@ -45,6 +45,11 @@ class AstPrinter implements Expr.Visitor<String> {
 	}
 
 	@Override
+	public String visitThisExpr(Expr.This expr) {
+		return "this";
+	}
+
+	@Override
 	public String visitVariableExpr(Expr.Variable expr) {
 		return parenthesize("var", expr);
 	}

@@ -4,6 +4,7 @@
  *     Ternary -> Expr left, Token first, Expr middle, Token second, Expr right;
  *     Binary -> Expr left, Token operator, Expr right;
  *     Set -> Expr object, Token name, Expr value;
+ *     This -> Token keyword;
  *     Unary -> Token operator, Expr right;
  *     Call -> Expr callee, Token paren, List<Expr> arguments;
  *     Get -> Expr object, Token name;
@@ -12,7 +13,7 @@
  *     Literal -> Object value;
  *     Logical -> Expr left, Token operator, Expr right;
  *     Variable -> Token name;
- * automatically generated with `generate_ast.py` on 13/05/25 22:13.
+ * automatically generated with `generate_ast.py` on 15/05/25 12:46.
 */
 package deppep.jlox;
 
@@ -25,6 +26,7 @@ abstract class Expr {
         R visitTernaryExpr(Ternary expr);
         R visitBinaryExpr(Binary expr);
         R visitSetExpr(Set expr);
+        R visitThisExpr(This expr);
         R visitUnaryExpr(Unary expr);
         R visitCallExpr(Call expr);
         R visitGetExpr(Get expr);
@@ -103,6 +105,19 @@ abstract class Expr {
         final Expr object;
         final Token name;
         final Expr value;
+    }
+
+    static class This extends Expr {
+        This(Token keyword) {
+            this.keyword=keyword;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitThisExpr(this);
+        }
+
+        final Token keyword;
     }
 
     static class Unary extends Expr {
