@@ -7,8 +7,10 @@ class LoxFunction implements LoxCallable {
     private final Token name;
     private final Expr.AnonFunction definition;
     private final Environment closure;
+    private final boolean isInitializer;
 
-    LoxFunction(Token name, Expr.AnonFunction definition, Environment closure) {
+    LoxFunction(Token name, Expr.AnonFunction definition, Environment closure, boolean isInitializer) {
+        this.isInitializer = isInitializer;
         this.name = name;
         this.definition = definition;
         this.closure = closure;
@@ -17,7 +19,7 @@ class LoxFunction implements LoxCallable {
     LoxFunction bind(LoxInstance instance) {
         Environment environment = new Environment(closure);
         environment.define("this", instance);
-        return new LoxFunction(name, definition, environment);
+        return new LoxFunction(name, definition, environment, isInitializer);
     }
 
     @Override
@@ -39,10 +41,12 @@ class LoxFunction implements LoxCallable {
             // and execute the definition body in it.
             interpreter.executeBlock(definition.body, environment);
         } catch (ReturnException returnValue) {
+            if (isInitializer) return closure.getAt(0, "this");
             return returnValue.value;
         }
         // just before returning, executeBlock will reset the interpreter environment to
         // the one of the callee, the function environment being discarded
+        if (isInitializer) return closure.getAt(0, "this");
         return null;
     }
 
