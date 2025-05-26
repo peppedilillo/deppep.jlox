@@ -5,7 +5,7 @@
  *                       | funDeclaration
  *                       | varDeclaration
  *                       | statement;
- *     classDeclaration -> "class" IDENTIFIER "{" function* "}";
+ *     classDeclaration -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}";
  *     funDeclaration   -> "fun" function;
  *     function         -> IDENTIFIER "(" parameters? ")" block;
  *     parameters       -> IDENTIFIER ( "," IDENTIFIER )*;
@@ -108,6 +108,13 @@ class Parser {
 
 	private Stmt classDeclaration() {
 		Token name = consume(TokenType.IDENTIFIER, "Expected class name.");
+
+		Expr.Variable superclass = null;
+		if (match(TokenType.LESS)) {
+			consume(TokenType.IDENTIFIER, "Expected superclass name.");
+			superclass = new Expr.Variable(previous());
+		}
+
 		consume(TokenType.LEFT_BRACE, "Expected '{' before class body.");
 		List<Stmt.Function> methods = new ArrayList<>();
 		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
@@ -116,7 +123,7 @@ class Parser {
 			methods.add((Stmt.Function)function("method"));
 		}
 		consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.");
-		return new Stmt.Class(name, methods);
+		return new Stmt.Class(name, superclass, methods);
 	}
 
 	private Stmt varDeclaration() {
