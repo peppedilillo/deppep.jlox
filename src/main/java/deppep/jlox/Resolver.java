@@ -14,6 +14,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private FunctionType currentFunction = FunctionType.NONE;
     // challenge 9.3
     private LoopType currentLoop = LoopType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     // challenge 11.3
     // rather than storing a single value, we are storing a record, transforming our
@@ -36,6 +37,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         LOOP
     }
 
+    private enum ClassType {
+        NONE,
+        CLASS,
+        SUBCLASS
+    }
+
     @Override
     public Void visitBlockStmt(Stmt.Block stmt) {
         beginScope();
@@ -46,15 +53,21 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
         declare(stmt.name);
         define(stmt.name);
 
-        if (stmt.superclass != null && stmt.superclass.name == stmt.name) {
+        if (stmt.superclass != null && stmt.superclass.name == stmt.name)
             // will take care of non-sense like `class Bagel < Bagel {};`
             Lox.error(stmt.superclass.name, "A class can't inherit from itself");
-        }
         if (stmt.superclass != null) {
+            currentClass = ClassType.SUBCLASS;
             resolve(stmt.superclass);
+            // this will make super point to the right superclass
+            beginScope();
+            scopes.peek().put("super", new VarInfo(stmt.superclass.name, true, true));
         }
 
         beginScope();
@@ -67,8 +80,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             }
             resolveFunction(method.definition, declaration);
         }
-
         endScope();
+
+        if (stmt.superclass != null) endScope();
+        currentClass = enclosingClass;
         return null;
     }
 
@@ -176,7 +191,23 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitSuperExpr(Expr.Super expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'super' outside of a class");
+        } else if (currentClass != ClassType.CLASS) {
+            Lox.error(expr.keyword, "Can't use 'super' in a class with no superclass.");
+        }
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
     public Void visitThisExpr(Expr.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+            return null;
+        }
+
         resolveLocal(expr, expr.keyword);
         return null;
     }

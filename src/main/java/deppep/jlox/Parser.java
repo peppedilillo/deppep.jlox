@@ -47,7 +47,7 @@
  *     arguments        -> expression ( "," expression )*;
  *     anonFunction     -> "fun" "(" parameters ")" block;
  *     primary          -> NUMBER | STRING | "true" | "false" | "nil"
- *                       | "(" expression ")";
+ *                       | "(" expression ")" | "super" "." IDENTIFIER;
 */
 package deppep.jlox;
 
@@ -525,6 +525,12 @@ class Parser {
 		if (match(TokenType.NIL)) return new Expr.Literal(null);
 		if (match(TokenType.NUMBER, TokenType.STRING)) return new Expr.Literal(previous().literal);
 		if (match(TokenType.THIS)) return new Expr.This(previous());
+		if (match(TokenType.SUPER)) {
+			Token keyword = previous();
+			consume(TokenType.DOT, "Expect '.' after 'super'.");
+			Token method = consume(TokenType.IDENTIFIER, "Expect superclass method name");
+			return new Expr.Super(keyword, method);
+		}
 		if (match(TokenType.IDENTIFIER)) return new Expr.Variable(previous());
 		if (match(TokenType.LEFT_PAREN)) {
 			Expr expr = expression();  // here we go again.

@@ -19,6 +19,7 @@ public class LoxClass implements LoxCallable {
             return methods.get(name);
         }
 
+        // note this implies that we will override methods higher up in the class hierarchy
         if (superclass != null) {
             return superclass.findMethod(name);
         }
